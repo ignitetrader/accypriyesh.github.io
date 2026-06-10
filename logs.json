@@ -1,0 +1,22 @@
+[
+  {
+    "id": "entry-2026-06-11",
+    "year": "2026",
+    "month": "June",
+    "day": "11",
+    "sentiment": "Bullish Momentum",
+    "context": "Market broke out above the weekly range. Check the raw market metrics on the [Finviz Dashboard](https://finviz.com).",
+    "lessons": "Patience paid off during the morning chop. Sticking strictly to my sizing parameters.",
+    "analysis": "NVIDIA looking strong. See my annotated technical chart below:\n\n![NVIDIA Chart](https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600)"
+  },
+  {
+    "id": "entry-2026-06-10",
+    "year": "2026",
+    "month": "June",
+    "day": "10",
+    "sentiment": "Bullish",
+    "context": "Market look incredibly strong today...",
+    "lessons": "Keep position sizing accurate.",
+    "analysis": "Trend Check: Momentum remains healthy above moving averages. Sticking to rules."
+  }
+]
