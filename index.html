@@ -28,7 +28,6 @@
             min-height: 100vh;
         }
 
-        /* LEFT SIDEBAR PANEL */
         .sidebar {
             width: 280px;
             background-color: var(--sidebar-bg);
@@ -49,7 +48,6 @@
             padding-bottom: 10px;
         }
 
-        /* Collapsible Tree Navigation Styles */
         .tree-item {
             cursor: pointer;
             padding: 8px 10px;
@@ -87,11 +85,10 @@
         .expanded > .arrow { transform: rotate(90deg); }
         .nested-group { padding-left: 5px; }
 
-        /* MAIN CONTENT AREA */
         .main-content {
             flex: 1;
             padding: 40px;
-            max-width: 1600px;
+            max-width: 900px;
             box-sizing: border-box;
         }
 
@@ -109,23 +106,19 @@
 
         .subtitle {
             margin: 5px 0 0 0;
-            color: #eab308; /* Gold/Yellow style anchor */
+            color: #eab308;
             font-size: 1.1rem;
             font-weight: 600;
             font-style: italic;
         }
 
-        /* Log Post Panels */
         .log-entry {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 30px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-            display: none; 
         }
-
-        .log-entry.active { display: block; }
 
         .entry-header {
             display: flex;
@@ -143,9 +136,9 @@
             border-radius: 20px;
             font-weight: bold;
             font-size: 0.85rem;
+            background: #dcfce7; 
+            color: #166534;
         }
-        .bullish { background: #dcfce7; color: #166534; }
-        .bearish { background: #fee2e2; color: #991b1b; }
 
         .section-title {
             color: var(--text-muted);
@@ -168,16 +161,31 @@
         }
         .lessons-box { border-left-color: #eab308; }
         .analysis-box { border-left-color: #3b82f6; }
+
+        /* Formatting Styles for Custom Media Assets */
+        .content-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: block;
+            border: 1px solid var(--border-color);
+        }
+        
+        .content-box a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .content-box a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div class="dashboard-container">
-    
     <aside class="sidebar">
         <div class="sidebar-header">Log Archive</div>
-        <div class="archive-tree" id="archiveTree">
-            </div>
+        <div class="archive-tree" id="archiveTree"></div>
     </aside>
 
     <main class="main-content">
@@ -186,85 +194,8 @@
             <p class="subtitle">I am the best trader</p>
         </header>
 
-        <div id="journal-container">
-
-            <div class="log-entry active" id="entry-2026-06-10" data-year="2026" data-month="June" data-day="10" data-sentiment="Bullish">
-                <div class="entry-header">
-                    <h2>June 10, 2026</h2>
-                    <span class="sentiment-badge bullish">Bullish</span>
-                </div>
-                <div class="section-title">Daily Sentiment & Context</div>
-                <div class="content-box">
-                    Market look incredibly strong today...
-                </div>
-                <div class="section-title">Lessons Learnt</div>
-                <div class="content-box lessons-box">
-                    Keep position sizing accurate.
-                </div>
-                <div class="section-title">Technical & Stock Analysis</div>
-                <div class="content-box analysis-box">
-                    <strong>Trend Check:</strong> Momentum remains healthy above moving averages. Sticking to rules.
-                </div>
+        <div id="active-log-view">
             </div>
-
-            <div class="log-entry" id="entry-2026-06-09" data-year="2026" data-month="June" data-day="09" data-sentiment="Bearish Pullback">
-                <div class="entry-header">
-                    <h2>June 09, 2026</h2>
-                    <span class="sentiment-badge bearish">Bearish Pullback</span>
-                </div>
-                <div class="section-title">Daily Sentiment & Context</div>
-                <div class="content-box">
-                    Heavy distribution in late afternoon trading. Major indices failing to hold critical structural levels.
-                </div>
-                <div class="section-title">Lessons Learnt</div>
-                <div class="content-box lessons-box">
-                    Don't fight the tape when clear intraday selling volume cascades through.
-                </div>
-                <div class="section-title">Technical & Stock Analysis</div>
-                <div class="content-box analysis-box">
-                    <strong>SPY:</strong> Watching psychological resistance targets closely tomorrow.
-                </div>
-            </div>
-
-            <div class="log-entry" id="entry-2026-05-09" data-year="2026" data-month="May" data-day="09" data-sentiment="Bearish Pullback">
-                <div class="entry-header">
-                    <h2>May 09, 2026</h2>
-                    <span class="sentiment-badge bearish">Bearish Pullback</span>
-                </div>
-                <div class="section-title">Daily Sentiment & Context</div>
-                <div class="content-box">
-                    Testing early monthly support corridors.
-                </div>
-                <div class="section-title">Lessons Learnt</div>
-                <div class="content-box lessons-box">
-                    Keep indicators clean and simple on macro execution days.
-                </div>
-                <div class="section-title">Technical & Stock Analysis</div>
-                <div class="content-box analysis-box">
-                    Moving averages holding steady.
-                </div>
-            </div>
-
-            <div class="log-entry" id="entry-2025-06-23" data-year="2025" data-month="June" data-day="23" data-sentiment="Bearish Pullback">
-                <div class="entry-header">
-                    <h2>June 23, 2025</h2>
-                    <span class="sentiment-badge bearish">Bearish Pullback</span>
-                </div>
-                <div class="section-title">Daily Sentiment & Context</div>
-                <div class="content-box">
-                    Historical log tracking data for structural continuity.
-                </div>
-                <div class="section-title">Lessons Learnt</div>
-                <div class="content-box lessons-box">
-                    Record keeping is the difference between a gambler and a professional trader.
-                </div>
-                <div class="section-title">Technical & Stock Analysis</div>
-                <div class="content-box analysis-box">
-                    Data storage verified.
-                </div>
-            </div>
-
-        </div>
     </main>
 </div>
 
@@ -274,32 +205,48 @@
         "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12
     };
 
-    function buildNavigationTree() {
-        const entries = document.querySelectorAll('.log-entry');
-        const treeContainer = document.getElementById('archiveTree');
-        if (!treeContainer) return;
+    let globalLogs = [];
 
+    // Helper function to turn plain text formatting shortcuts into HTML tags
+    function parseMarkdown(text) {
+        if (!text) return '';
+        let html = text;
+        // Images: ![alt](url) -> <img src="url" alt="alt">
+        html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
+        // Links: [text](url) -> <a href="url" target="_blank">text</a>
+        html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
+        return html;
+    }
+
+    async function loadLogsEngine() {
+        try {
+            // Fetch configuration directly from your separate JSON database file
+            const response = await fetch('logs.json?t=' + new Date().getTime());
+            globalLogs = await response.json();
+            
+            buildTree(globalLogs);
+            if (globalLogs.length > 0) {
+                // Instantly load the first array entry on index load execution
+                renderActiveLog(globalLogs[0].id);
+            }
+        } catch (error) {
+            document.getElementById('active-log-view').innerHTML = `<p style="color:red;">Error loading logs database configuration.</p>`;
+        }
+    }
+
+    function buildTree(logs) {
+        const treeContainer = document.getElementById('archiveTree');
         let dataStructure = {};
 
-        entries.forEach(entry => {
-            const id = entry.id;
-            const year = entry.getAttribute('data-year');
-            const month = entry.getAttribute('data-month');
-            const sentiment = entry.getAttribute('data-sentiment') || '';
+        logs.forEach(log => {
+            const dayNum = parseInt(log.day.replace(/\D/g, ''), 10) || 1;
+            if (!dataStructure[log.year]) dataStructure[log.year] = {};
+            if (!dataStructure[log.year][log.month]) dataStructure[log.year][log.month] = [];
             
-            let rawDay = entry.getAttribute('data-day') || "1";
-            let numericDay = parseInt(rawDay.replace(/\D/g, ''), 10) || 1;
-
-            if (year && month) {
-                if (!dataStructure[year]) dataStructure[year] = {};
-                if (!dataStructure[year][month]) dataStructure[year][month] = [];
-                dataStructure[year][month].push({ id, day: numericDay, sentiment });
-            }
+            dataStructure[log.year][log.month].push({ id: log.id, day: dayNum, sentiment: log.sentiment });
         });
 
         treeContainer.innerHTML = '';
-
-        // Years Sorted Descending (2026 -> 2025)
         const sortedYears = Object.keys(dataStructure).sort((a, b) => b - a);
 
         sortedYears.forEach(year => {
@@ -314,10 +261,7 @@
             yearGroup.id = yearId;
             yearGroup.className = 'nested-group hidden';
 
-            // Months Sorted Ascending Chronologically (May -> June)
-            const sortedMonths = Object.keys(dataStructure[year]).sort((a, b) => {
-                return (monthOrder[a] || 0) - (monthOrder[b] || 0);
-            });
+            const sortedMonths = Object.keys(dataStructure[year]).sort((a, b) => (monthOrder[a] || 0) - (monthOrder[b] || 0));
 
             sortedMonths.forEach(month => {
                 const monthId = `group-month-${year}-${month}`;
@@ -331,33 +275,51 @@
                 monthGroup.id = monthId;
                 monthGroup.className = 'nested-group hidden';
 
-                // Days Sorted Ascending Chronologically (09 -> 10)
                 dataStructure[year][month].sort((a, b) => a.day - b.day);
 
                 dataStructure[year][month].forEach(post => {
                     const dateLink = document.createElement('div');
                     dateLink.className = 'tree-item date-level';
-                    
-                    // Highlight current active post link on load
-                    const activePost = document.querySelector('.log-entry.active');
-                    if (activePost && activePost.id === post.id) {
-                        dateLink.className += ' active-link';
-                    }
+                    dateLink.id = `node-${post.id}`;
                     
                     const formattedDay = post.day < 10 ? '0' + post.day : post.day;
                     dateLink.innerHTML = `📅 Day ${formattedDay} (${post.sentiment})`;
                     
                     dateLink.onclick = (e) => {
                         e.stopPropagation();
-                        showEntry(post.id, dateLink);
+                        renderActiveLog(post.id);
                     };
                     monthGroup.appendChild(dateLink);
                 });
-
                 yearGroup.appendChild(monthGroup);
             });
             treeContainer.appendChild(yearGroup);
         });
+    }
+
+    function renderActiveLog(id) {
+        const targetLog = globalLogs.find(l => l.id === id);
+        const container = document.getElementById('active-log-view');
+        if (!targetLog || !container) return;
+
+        container.innerHTML = `
+            <article class="log-entry">
+                <div class="entry-header">
+                    <h2>${targetLog.month} ${targetLog.day}, ${targetLog.year}</h2>
+                    <span class="sentiment-badge">${targetLog.sentiment}</span>
+                </div>
+                <div class="section-title">Daily Sentiment & Context</div>
+                <div class="content-box">${parseMarkdown(targetLog.context)}</div>
+                <div class="section-title">Lessons Learnt</div>
+                <div class="content-box lessons-box">${parseMarkdown(targetLog.lessons)}</div>
+                <div class="section-title">Technical & Stock Analysis</div>
+                <div class="content-box analysis-box">${parseMarkdown(targetLog.analysis)}</div>
+            </article>
+        `;
+
+        document.querySelectorAll('.date-level').forEach(el => el.classList.remove('active-link'));
+        const activeNode = document.getElementById(`node-${id}`);
+        if (activeNode) activeNode.classList.add('active-link');
     }
 
     function toggleView(id, headerEl) {
@@ -372,22 +334,7 @@
         }
     }
 
-    function showEntry(entryId, linkEl) {
-        document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('active'));
-        document.querySelectorAll('.date-level').forEach(l => l.classList.remove('active-link'));
-        
-        const targetEntry = document.getElementById(entryId);
-        if (targetEntry) targetEntry.classList.add('active');
-        if (linkEl) linkEl.classList.add('active-link');
-    }
-
-    // Run execution immediately to prevent load racing bugs
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', buildNavigationTree);
-    } else {
-        buildNavigationTree();
-    }
+    document.addEventListener('DOMContentLoaded', loadLogsEngine);
 </script>
-
 </body>
 </html>
