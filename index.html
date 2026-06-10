@@ -1,35 +1,224 @@
----
-layout: default
----
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Sentiment & Strategy Log</title>
+  <style>
+    :root {
+      --panel-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #64748b;
+      --accent-blue: #3b82f6;
+      --border-color: #cbd5e1;
+    }
 
-<div class="journal-wrapper" style="font-family: sans-serif; max-width: 800px; margin: 0 auto; color: #1e293b;">
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f8fafc;
+    }
+
+    .dashboard-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Layout */
+    .sidebar {
+      width: 280px;
+      background-color: var(--panel-bg);
+      color: var(--text-main);
+      padding: 20px;
+      border-right: 1px solid #334155;
+      box-sizing: border-box;
+    }
+
+    .sidebar-header {
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+    }
+
+    /* Interactive Navigation Tree Styles */
+    .tree-item {
+      cursor: pointer;
+      padding: 8px 10px;
+      border-radius: 6px;
+      display: block;
+      text-decoration: none;
+      color: #cbd5e1;
+      margin-bottom: 4px;
+      transition: background 0.2s ease;
+    }
+
+    .tree-item:hover {
+      background-color: #334155;
+      color: #fff;
+    }
+
+    .year-level { font-size: 1.05rem; }
+    .month-level { font-size: 0.95rem; padding-left: 15px; color: #94a3b8; }
+    .date-level { font-size: 0.9rem; padding-left: 20px; color: #38bdf8; }
+
+    .arrow {
+      display: inline-block;
+      font-size: 0.75rem;
+      margin-right: 5px;
+      transition: transform 0.2s;
+    }
+
+    /* Collapse / Expand Mechanics */
+    .hidden { display: none; }
+    .expanded .arrow { transform: rotate(90deg); }
+    .nested-group { padding-left: 10px; }
+
+    /* Main Content Layout */
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      max-width: 900px;
+      box-sizing: border-box;
+    }
+
+    .journal-header {
+      margin-bottom: 40px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 15px;
+    }
+
+    .journal-header h1 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      margin: 5px 0 0 0;
+      color: #eab308; /* Gold/Yellow tone */
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-style: italic;
+    }
+
+    /* Log Post Box styling */
+    .log-entry {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+    }
+
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 2px solid #f1f5f9;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+    }
+
+    .entry-header h2 { margin: 0; color: #1e293b; }
+
+    .sentiment-badge {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 0.85rem;
+    }
+
+    .entry-body {
+      line-height: 1.8;
+      color: #334155;
+      font-size: 1.05rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="dashboard-container">
   
-  <div class="nav-controls" style="margin-bottom: 30px; padding: 15px; background: #f1f5f9; border-radius: 8px;">
-    <label for="dateSelect" style="font-weight: bold; margin-right: 10px;">Jump to Past Logs:</label>
-    <select id="dateSelect" onchange="location = this.value;" style="padding: 6px; border-radius: 4px;">
-      <option value="">-- Select a Date --</option>
-      {% for post in site.posts %}
-        <option value="{{ post.url }}">{{ post.date | date: "%B %d, %Y" }} - {{ post.sentiment }}</option>
+  <aside class="sidebar">
+    <div class="sidebar-header">Log Archive</div>
+    <div class="archive-tree">
+      
+      {% assign postsByYear = site.posts | group_by_exp: "post", "post.date | date: '%Y'" %}
+      {% for year in postsByYear %}
+        <div class="tree-item year-level" onclick="toggleMenu('year-{{ year.name }}')">
+          <span class="arrow">▶</span> <strong>{{ year.name }}</strong>
+        </div>
+        
+        <div id="year-{{ year.name }}" class="nested-group hidden">
+          {% assign postsByMonth = year.items | group_by_exp: "post", "post.date | date: '%B'" %}
+          {% for month in postsByMonth %}
+            
+            <div class="tree-item month-level" onclick="event.stopPropagation(); toggleMenu('month-{{ year.name }}-{{ month.name }}')">
+              <span class="arrow">▶</span> {{ month.name }}
+            </div>
+            
+            <div id="month-{{ year.name }}-{{ month.name }}" class="nested-group hidden" style="padding-left: 15px;">
+              {% for post in month.items %}
+                <a href="{{ post.url }}" class="tree-item date-level">
+                  📅 {{ post.date | date: "%d" }} - {{ post.sentiment | truncate: 12 }}
+                </a>
+              {% endfor %}
+            </div>
+            
+          {% endfor %}
+        </div>
       {% endfor %}
-    </select>
-  </div>
 
-  {% assign latest_post = site.posts.first %}
-  {% if latest_post %}
-    <article class="log-entry" style="border: 1px solid #cbd5e1; border-radius: 12px; padding: 25px; background: #ffffff;">
-      <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px;">
-        <h2 style="margin: 0; font-size: 1.5rem;">{{ latest_post.date | date: "%B %d, %Y" }}</h2>
-        <span style="padding: 4px 12px; border-radius: 20px; font-weight: bold; background: #dcfce7; color: #166534;">
-          {{ latest_post.sentiment }}
-        </span>
-      </div>
+    </div>
+  </aside>
 
-      <div class="entry-body" style="line-height: 1.7;">
-        {{ latest_post.content }}
-      </div>
-    </article>
-  {% else %}
-    <p>No log entries found. Start adding markdown files to your _posts folder!</p>
-  {% endif %}
+  <main class="main-content">
+    <header class="journal-header">
+      <h1>Market Sentiment & Strategy Log</h1>
+      <p class="subtitle">I am the best trader</p>
+    </header>
+
+    {% assign latest_post = site.posts.first %}
+    {% if latest_post %}
+      <article class="log-entry">
+        <div class="entry-header">
+          <h2>{{ latest_post.date | date: "%B %d, %Y" }}</h2>
+          <span class="sentiment-badge">{{ latest_post.sentiment }}</span>
+        </div>
+
+        <div class="entry-body">
+          {{ latest_post.content }}
+        </div>
+      </article>
+    {% else %}
+      <p style="color: var(--text-muted);">No log entries found yet. Create a file inside your <strong>_posts</strong> folder to see your data populate here!</p>
+    {% endif %}
+  </main>
 
 </div>
+
+<script>
+  function toggleMenu(id) {
+    const targetGroup = document.getElementById(id);
+    const triggerItem = event.currentTarget;
+    
+    if (targetGroup.classList.contains('hidden')) {
+      targetGroup.classList.remove('hidden');
+      triggerItem.classList.add('expanded');
+    } else {
+      targetGroup.classList.add('hidden');
+      triggerItem.classList.remove('expanded');
+    }
+  }
+</script>
+
+</body>
+</html>
