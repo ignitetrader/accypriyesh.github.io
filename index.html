@@ -1,204 +1,223 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Journal & Sentiment Log</title>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --border-color: #334155;
-        }
+---
+layout: default
+---
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-center: center;
-        }
-
-        .container {
-            max-width: 3000px;
-            width: 100%;
-            margin: 0 auto;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-
-        h1 { margin: 0; font-size: 1.5rem; letter-spacing: -0.05em; }
-
-        .nav-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        select {
-            background-color: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        .log-entry {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 25px;
-            display: none;
-        }
-
-        .log-entry.active { display: block; }
-
-        .entry-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #2e3d52;
-            padding-bottom: 10px;
-        }
-
-        .date { font-size: 1.25rem; font-weight: bold; }
-        
-        .sentiment-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-        .bullish { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
-        .bearish { background-color: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
-
-        .section-title {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 20px;
-            margin-bottom: 8px;
-        }
-
-        .content-box {
-            background: rgba(0,0,0,0.15);
-            padding: 12px 16px;
-            border-radius: 6px;
-            border-left: 3px solid var(--border-color);
-            line-height: 1.6;
-        }
-        
-        .lessons-box { border-left-color: #eab308; }
-        .analysis-box { border-left-color: #3b82f6; }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <header>
-        <h1>Market Sentiment & Strategy Log</h1>
-        <div class="nav-controls">
-            <label for="dateSelect">Jump to Date: </label>
-            <select id="dateSelect" onchange="switchDate(this.value)">
-                <!-- Options are automatically populated by JavaScript -->
-            </select>
+<div class="dashboard-container">
+  
+  <aside class="sidebar">
+    <div class="sidebar-header">Log Archive</div>
+    <div class="archive-tree">
+      
+      {% assign postsByYear = site.posts | group_by_exp: "post", "post.date | date: '%Y'" %}
+      {% for year in postsByYear %}
+        <div class="tree-item year-level" onclick="toggleMenu('year-{{ year.name }}')">
+          <span class="arrow">▶</span> <strong>{{ year.name }}</strong>
         </div>
+        
+        <div id="year-{{ year.name }}" class="nested-group hidden">
+          {% assign postsByMonth = year.items | group_by_exp: "post", "post.date | date: '%B'" %}
+          {% for month in postsByMonth %}
+            
+            <div class="tree-item month-level" onclick="event.stopPropagation(); toggleMenu('month-{{ year.name }}-{{ month.name }}')">
+              <span class="arrow">▶</span> {{ month.name }}
+            </div>
+            
+            <div id="month-{{ year.name }}-{{ month.name }}" class="nested-group hidden" style="padding-left: 15px;">
+              {% for post in month.items %}
+                <a href="{{ post.url }}" class="tree-item date-level {% if page.url == post.url %}active-link{% endif %}">
+                  📅 {{ post.date | date: "%d" }} - {{ post.sentiment | truncate: 15 }}
+                </a>
+              {% endfor %}
+            </div>
+            
+          {% endfor %}
+        </div>
+      {% endfor %}
+
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="journal-header">
+      <h1>Market Sentiment & Strategy Log</h1>
+      <p class="subtitle">I am the best trader</p>
     </header>
 
-    <main id="journal-container">
-        <!-- ENTRY 1 -->
-        <div class="log-entry active" id="2026-06-10">
-            <div class="entry-header">
-                <div class="date">June 10, 2026</div>
-                <span class="sentiment-badge bullish">Bullish Momentum</span>
-            </div>
-            
-            <div class="section-title">Daily Sentiment & Context</div>
-            <div class="content-box">
-                Market showed strong relative strength today. Tech leading the breakout above the weekly EMA. Volume confirming the moves. Keeping an eye on key semi-conductors showing high squeeze potential.
-            </div>
-
-            <div class="section-title">Lessons Learnt</div>
-            <div class="content-box lessons-box">
-                Patience paid off today. Chasing the morning gap-up usually results in getting trapped, but waiting for the VWAP pull-back confirmation saved capital and provided a clean risk-to-reward entry.
-            </div>
-
-            <div class="section-title">Technical & Stock Analysis</div>
-            <div class="content-box analysis-box">
-                <strong>SOXL / NVIDIA:</strong> Anchored VWAP from recent swing lows acting as a rock-solid floor. Sticking to the plan of trading near the daily 9 EMA. Over-leveraging on choppy days ruins psychological edge—keep position sizes strict.
-            </div>
+    {% assign latest_post = site.posts.first %}
+    {% if latest_post %}
+      <article class="log-entry">
+        <div class="entry-header">
+          <h2>{{ latest_post.date | date: "%B %d, %Y" }}</h2>
+          <span class="sentiment-badge">{{ latest_post.sentiment }}</span>
         </div>
 
-        <!-- ENTRY 2 -->
-        <div class="log-entry" id="2026-06-09">
-            <div class="entry-header">
-                <div class="date">June 9, 2026</div>
-                <span class="sentiment-badge bearish">Bearish Consolidation</span>
-            </div>
-            
-            <div class="section-title">Daily Sentiment & Context</div>
-            <div class="content-box">
-                Heavy distribution in the afternoon. Major indices failing to hold opening gains. Rotation into defensive sectors apparent.
-            </div>
-
-            <div class="section-title">Lessons Learnt</div>
-            <div class="content-box lessons-box">
-                When momentum dies at the key psychological resistance levels, don't fight the tape. Cut weak positions early instead of hoping for a late-day rescue rally.
-            </div>
-
-            <div class="section-title">Technical & Stock Analysis</div>
-            <div class="content-box analysis-box">
-                <strong>SPY / Tech:</strong> Closed below the daily mid-band. Watching macro indicators and volume flow indicators closely to gauge if this is a minor pullback or a deeper trend shift.
-            </div>
+        <div class="entry-body">
+          {{ latest_post.content }}
         </div>
-    </main>
+      </article>
+    {% else %}
+      <p>No log entries found. Start adding markdown files to your _posts folder!</p>
+    {% endif %}
+  </main>
+
 </div>
 
+<style>
+  :root {
+    --panel-bg: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #64748b;
+    --accent-blue: #3b82f6;
+    --border-color: #cbd5e1;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8fafc;
+  }
+
+  .dashboard-container {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Sidebar Layout */
+  .sidebar {
+    width: 280px;
+    background-color: var(--panel-bg);
+    color: var(--text-main);
+    padding: 20px;
+    border-right: 1px solid #334155;
+    box-sizing: border-box;
+  }
+
+  .sidebar-header {
+    font-size: 1.1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #94a3b8;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 10px;
+  }
+
+  /* Interactive Navigation Tree Styles */
+  .tree-item {
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 6px;
+    display: block;
+    text-decoration: none;
+    color: #cbd5e1;
+    margin-bottom: 4px;
+    transition: background 0.2s ease;
+  }
+
+  .tree-item:hover {
+    background-color: #334155;
+    color: #fff;
+  }
+
+  .year-level { font-size: 1.05rem; }
+  .month-level { font-size: 0.95rem; padding-left: 15px; color: #94a3b8; }
+  .date-level { font-size: 0.9rem; padding-left: 20px; color: #38bdf8; }
+  
+  .date-level.active-link {
+    background-color: var(--accent-blue);
+    color: white !important;
+    font-weight: bold;
+  }
+
+  .arrow {
+    display: inline-block;
+    font-size: 0.75rem;
+    margin-right: 5px;
+    transition: transform 0.2s;
+  }
+
+  /* Collapse / Expand Mechanics */
+  .hidden { display: none; }
+  .expanded .arrow { transform: rotate(90deg); }
+  .nested-group { padding-left: 10px; }
+
+  /* Main Content Layout */
+  .main-content {
+    flex: 1;
+    padding: 40px;
+    max-width: 900px;
+    box-sizing: border-box;
+  }
+
+  .journal-header {
+    margin-bottom: 40px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 15px;
+  }
+
+  .journal-header h1 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    margin: 5px 0 0 0;
+    color: #eab308; /* Gold/Yellow tone */
+    font-size: 1.1rem;
+    font-weight: 600;
+    font-style: italic;
+  }
+
+  /* Log Post Box styling */
+  .log-entry {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+  }
+
+  .entry-header h2 { margin: 0; color: #1e293b; }
+
+  .sentiment-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: bold;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.85rem;
+  }
+
+  .entry-body {
+    line-height: 1.8;
+    color: #334155;
+    font-size: 1.05rem;
+  }
+</style>
+
 <script>
-    // Automatically generate navigation dropdown from existing entries
-    function populateDropdown() {
-        const select = document.getElementById('dateSelect');
-        const entries = document.querySelectorAll('.log-entry');
-        
-        entries.forEach(entry => {
-            const id = entry.id;
-            const dateText = entry.querySelector('.date').innerText;
-            const opt = document.createElement('option');
-            opt.value = id;
-            opt.innerHTML = dateText;
-            select.appendChild(opt);
-        });
+  function toggleMenu(id) {
+    const targetGroup = document.getElementById(id);
+    const triggerItem = event.currentTarget;
+    
+    if (targetGroup.classList.contains('hidden')) {
+      targetGroup.classList.remove('hidden');
+      triggerItem.classList.add('expanded');
+    } else {
+      targetGroup.classList.add('hidden');
+      triggerItem.classList.remove('expanded');
     }
-
-    // Function to handle changing date views
-    function switchDate(targetId) {
-        const entries = document.querySelectorAll('.log-entry');
-        entries.forEach(entry => {
-            entry.classList.remove('active');
-        });
-        document.getElementById(targetId).classList.add('active');
-    }
-
-    // Initialize dropdown on load
-    window.onload = populateDropdown;
+  }
 </script>
-
-</body>
-</html>
