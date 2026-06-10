@@ -1,223 +1,241 @@
----
-layout: default
----
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Sentiment & Strategy Log</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --sidebar-bg: #1e293b;
+            --sidebar-text: #cbd5e1;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --accent-blue: #3b82f6;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* LEFT SIDEBAR PANEL */
+        .sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 20px;
+            border-right: 1px solid #334155;
+            box-sizing: border-box;
+        }
+
+        .sidebar-header {
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        /* Collapsible Tree Navigation Styles */
+        .tree-item {
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 6px;
+            display: block;
+            margin-bottom: 4px;
+            transition: background 0.2s;
+            user-select: none;
+        }
+
+        .tree-item:hover {
+            background-color: #334155;
+            color: #fff;
+        }
+
+        .year-level { font-size: 1.05rem; font-weight: bold; }
+        .month-level { font-size: 0.95rem; padding-left: 15px; color: #94a3b8; }
+        .date-level { font-size: 0.9rem; padding-left: 25px; color: #38bdf8; }
+        
+        .date-level.active-link {
+            background-color: var(--accent-blue);
+            color: white;
+            font-weight: bold;
+        }
+
+        .arrow {
+            display: inline-block;
+            font-size: 0.75rem;
+            margin-right: 5px;
+            transition: transform 0.2s;
+        }
+
+        .hidden { display: none; }
+        .expanded > .arrow { transform: rotate(90deg); }
+        .nested-group { padding-left: 5px; }
+
+        /* MAIN CONTENT AREA */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            max-width: 900px;
+            box-sizing: border-box;
+        }
+
+        .journal-header {
+            margin-bottom: 40px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+        }
+
+        .journal-header h1 {
+            margin: 0;
+            color: var(--text-main);
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            margin: 5px 0 0 0;
+            color: #eab308; /* Gold/Yellow style anchor */
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-style: italic;
+        }
+
+        /* Log Post Panels */
+        .log-entry {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            display: none; /* Controlled by Javascript engine */
+        }
+
+        .log-entry.active { display: block; }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .entry-header h2 { margin: 0; color: #1e293b; }
+
+        .sentiment-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .bullish { background: #dcfce7; color: #166534; }
+        .bearish { background: #fee2e2; color: #991b1b; }
+
+        .section-title {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 25px;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .content-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #cbd5e1;
+            line-height: 1.7;
+            color: #334155;
+        }
+        .lessons-box { border-left-color: #eab308; }
+        .analysis-box { border-left-color: #3b82f6; }
+    </style>
+</head>
+<body>
 
 <div class="dashboard-container">
-  
-  <aside class="sidebar">
-    <div class="sidebar-header">Log Archive</div>
-    <div class="archive-tree">
-      
-      {% assign postsByYear = site.posts | group_by_exp: "post", "post.date | date: '%Y'" %}
-      {% for year in postsByYear %}
-        <div class="tree-item year-level" onclick="toggleMenu('year-{{ year.name }}')">
-          <span class="arrow">▶</span> <strong>{{ year.name }}</strong>
-        </div>
-        
-        <div id="year-{{ year.name }}" class="nested-group hidden">
-          {% assign postsByMonth = year.items | group_by_exp: "post", "post.date | date: '%B'" %}
-          {% for month in postsByMonth %}
-            
-            <div class="tree-item month-level" onclick="event.stopPropagation(); toggleMenu('month-{{ year.name }}-{{ month.name }}')">
-              <span class="arrow">▶</span> {{ month.name }}
-            </div>
-            
-            <div id="month-{{ year.name }}-{{ month.name }}" class="nested-group hidden" style="padding-left: 15px;">
-              {% for post in month.items %}
-                <a href="{{ post.url }}" class="tree-item date-level {% if page.url == post.url %}active-link{% endif %}">
-                  📅 {{ post.date | date: "%d" }} - {{ post.sentiment | truncate: 15 }}
-                </a>
-              {% endfor %}
-            </div>
-            
-          {% endfor %}
-        </div>
-      {% endfor %}
-
-    </div>
-  </aside>
-
-  <main class="main-content">
-    <header class="journal-header">
-      <h1>Market Sentiment & Strategy Log</h1>
-      <p class="subtitle">I am the best trader</p>
-    </header>
-
-    {% assign latest_post = site.posts.first %}
-    {% if latest_post %}
-      <article class="log-entry">
-        <div class="entry-header">
-          <h2>{{ latest_post.date | date: "%B %d, %Y" }}</h2>
-          <span class="sentiment-badge">{{ latest_post.sentiment }}</span>
-        </div>
-
-        <div class="entry-body">
-          {{ latest_post.content }}
-        </div>
-      </article>
-    {% else %}
-      <p>No log entries found. Start adding markdown files to your _posts folder!</p>
-    {% endif %}
-  </main>
-
-</div>
-
-<style>
-  :root {
-    --panel-bg: #1e293b;
-    --text-main: #f8fafc;
-    --text-muted: #64748b;
-    --accent-blue: #3b82f6;
-    --border-color: #cbd5e1;
-  }
-
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f8fafc;
-  }
-
-  .dashboard-container {
-    display: flex;
-    min-height: 100vh;
-  }
-
-  /* Sidebar Layout */
-  .sidebar {
-    width: 280px;
-    background-color: var(--panel-bg);
-    color: var(--text-main);
-    padding: 20px;
-    border-right: 1px solid #334155;
-    box-sizing: border-box;
-  }
-
-  .sidebar-header {
-    font-size: 1.1rem;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #94a3b8;
-    margin-bottom: 20px;
-    border-bottom: 1px solid #334155;
-    padding-bottom: 10px;
-  }
-
-  /* Interactive Navigation Tree Styles */
-  .tree-item {
-    cursor: pointer;
-    padding: 8px 10px;
-    border-radius: 6px;
-    display: block;
-    text-decoration: none;
-    color: #cbd5e1;
-    margin-bottom: 4px;
-    transition: background 0.2s ease;
-  }
-
-  .tree-item:hover {
-    background-color: #334155;
-    color: #fff;
-  }
-
-  .year-level { font-size: 1.05rem; }
-  .month-level { font-size: 0.95rem; padding-left: 15px; color: #94a3b8; }
-  .date-level { font-size: 0.9rem; padding-left: 20px; color: #38bdf8; }
-  
-  .date-level.active-link {
-    background-color: var(--accent-blue);
-    color: white !important;
-    font-weight: bold;
-  }
-
-  .arrow {
-    display: inline-block;
-    font-size: 0.75rem;
-    margin-right: 5px;
-    transition: transform 0.2s;
-  }
-
-  /* Collapse / Expand Mechanics */
-  .hidden { display: none; }
-  .expanded .arrow { transform: rotate(90deg); }
-  .nested-group { padding-left: 10px; }
-
-  /* Main Content Layout */
-  .main-content {
-    flex: 1;
-    padding: 40px;
-    max-width: 900px;
-    box-sizing: border-box;
-  }
-
-  .journal-header {
-    margin-bottom: 40px;
-    border-bottom: 2px solid #e2e8f0;
-    padding-bottom: 15px;
-  }
-
-  .journal-header h1 {
-    margin: 0;
-    color: #0f172a;
-    font-size: 2rem;
-  }
-
-  .subtitle {
-    margin: 5px 0 0 0;
-    color: #eab308; /* Gold/Yellow tone */
-    font-size: 1.1rem;
-    font-weight: 600;
-    font-style: italic;
-  }
-
-  /* Log Post Box styling */
-  .log-entry {
-    background: #ffffff;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
-  }
-
-  .entry-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    border-bottom: 2px solid #f1f5f9;
-    padding-bottom: 15px;
-    margin-bottom: 25px;
-  }
-
-  .entry-header h2 { margin: 0; color: #1e293b; }
-
-  .sentiment-badge {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-weight: bold;
-    background: #dcfce7;
-    color: #166534;
-    font-size: 0.85rem;
-  }
-
-  .entry-body {
-    line-height: 1.8;
-    color: #334155;
-    font-size: 1.05rem;
-  }
-</style>
-
-<script>
-  function toggleMenu(id) {
-    const targetGroup = document.getElementById(id);
-    const triggerItem = event.currentTarget;
     
-    if (targetGroup.classList.contains('hidden')) {
-      targetGroup.classList.remove('hidden');
-      triggerItem.classList.add('expanded');
-    } else {
-      targetGroup.classList.add('hidden');
-      triggerItem.classList.remove('expanded');
-    }
-  }
-</script>
+    <aside class="sidebar">
+        <div class="sidebar-header">Log Archive</div>
+        <div class="archive-tree" id="archiveTree">
+            </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="journal-header">
+            <h1>Market Sentiment & Strategy Log</h1>
+            <p class="subtitle">I am the best trader</p>
+        </header>
+
+        <div id="journal-container">
+
+            <div class="log-entry active" id="entry-2026-06-10" data-year="2026" data-month="June" data-day="10" data-sentiment="Bullish Momentum">
+                <div class="entry-header">
+                    <h2>June 10, 2026</h2>
+                    <span class="sentiment-badge bullish">Bullish Momentum</span>
+                </div>
+                <div class="section-title">Daily Sentiment & Context</div>
+                <div class="content-box">
+                    Market showed strong relative strength today. Tech leading the breakout above the weekly EMA. Volume confirming the moves.
+                </div>
+                <div class="section-title">Lessons Learnt</div>
+                <div class="content-box lessons-box">
+                    Patience paid off today. Chasing the morning gap-up usually results in getting trapped.
+                </div>
+                <div class="section-title">Technical & Stock Analysis</div>
+                <div class="content-box analysis-box">
+                    <strong>SOXL / NVIDIA:</strong> Anchored VWAP from swing lows acting as support. Keep risk size consistent.
+                </div>
+            </div>
+
+            <div class="log-entry" id="entry-2026-06-09" data-year="2026" data-month="June" data-day="09" data-sentiment="Bearish Pullback">
+                <div class="entry-header">
+                    <h2>June 09, 2026</h2>
+                    <span class="sentiment-badge bearish">Bearish Pullback</span>
+                </div>
+                <div class="section-title">Daily Sentiment & Context</div>
+                <div class="content-box">
+                    Heavy distribution in late afternoon trading. Major indices failing to hold critical structural levels.
+                </div>
+                <div class="section-title">Lessons Learnt</div>
+                <div class="content-box lessons-box">
+                    Don't fight the tape when clear intraday selling volume cascades through.
+                </div>
+                <div class="section-title">Technical & Stock Analysis</div>
+                <div class="content-box analysis-box">
+                    <strong>SPY:</strong> Watching psychological resistance targets closely tomorrow.
+                </div>
+            </div>
+
+            <div class="log-entry" id="entry-2025-12-15" data-year="2025" data-month="December" data-day="15" data-sentiment="Bullish Trend">
+                <div class="entry-header">
+                    <h2>December 15, 2025</h2>
+                    <span class="sentiment-badge bullish">Bullish Trend</span>
+                </div>
+                <div class="section-title">Daily Sentiment & Context</div>
+                <div class="content-box">
+                    End of year rally wrapping up with strong continuation patterns across macro sectors.
+                </div>
+                <div class="section-title">Lessons Learnt</div>
+                <div class="content-box lessons-box">
+                    Let winners ride when trend indicators match execution perfectly.
+                </div>
+                <div class="section-title">Technical & Stock Analysis</div>
+                <div class="content-box analysis-
