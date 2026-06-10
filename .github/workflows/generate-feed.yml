@@ -1,0 +1,66 @@
+name: Auto Generate Journal Feed
+on:
+  push:
+    paths:
+      - 'diary/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Scan Files and Build Feed
+        run: |
+          echo "[" > feed.json
+          first=true
+          # Loop through files sorted chronologically
+          for file in $(ls -r diary/*.md 2>/dev/null); do
+            filename=$(basename "$file")
+            # Extract date parts assuming YYYY-MM-DD.md format
+            year=$(echo "$filename" | cut -d'-' -f1)
+            month_num=$(echo "$filename" | cut -d'-' -f2)
+            day=$(echo "$filename" | cut -d'-' -f3 | cut -d'.' -f1)
+            
+            # Map month numbers to strings
+            case "$month_num" in
+              01) month="January" ;;
+              02) month="February" ;;
+              03) month="March" ;;
+              04) month="April" ;;
+              05) month="May" ;;
+              06) month="June" ;;
+              07) month="July" ;;
+              08) month="August" ;;
+              09) month="September" ;;
+              10) month="October" ;;
+              11) month="November" ;;
+              12) month="December" ;;
+            esac
+            
+            # Read first few lines to look for a custom sentiment tag
+            sentiment="Logged"
+            if grep -q "sentiment:" "$file"; then
+              sentiment=$(grep "sentiment:" "$file" | head -n 1 | cut -d':' -f2- | xargs)
+            fi
+
+            if [ "$first" = true ]; then
+              first=false
+            else
+              echo "," >> feed.json
+            fi
+            
+            echo "  {\"filename\": \"$filename\", \"year\": \"$year\", \"month\": \"$month\", \"day\": \"$day\", \"sentiment\": \"$sentiment\"}" >> feed.json
+          done
+          echo "]" >> feed.json
+
+      - name: Commit and Push Updated Feed
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "actions@github.com"
+          git add feed.json
+          git diff-index --quiet HEAD || git commit -m "Automated feed sync [skip ci]" && git push
