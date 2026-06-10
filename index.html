@@ -279,12 +279,38 @@
         const treeContainer = document.getElementById('archiveTree');
         let dataStructure = {};
 
-        // 1. Map data from DOM attributes safely
         entries.forEach(entry => {
             const id = entry.id;
             const year = entry.getAttribute('data-year');
             const month = entry.getAttribute('data-month');
-            const day = parseInt(entry.getAttribute('data-day'), 10); // Force number valuation
             const sentiment = entry.getAttribute('data-sentiment');
+            
+            // CRITICAL BUG FIX: Extract only numbers from raw data-day string to prevent crashes
+            let rawDay = entry.getAttribute('data-day') || "1";
+            let numericDay = parseInt(rawDay.replace(/\D/g, ''), 10) || 1;
 
-            if (!dataStructure[year]) dataStructure
+            if (!dataStructure[year]) dataStructure[year] = {};
+            if (!dataStructure[year][month]) dataStructure[year][month] = [];
+            
+            dataStructure[year][month].push({ id, day: numericDay, sentiment });
+        });
+
+        treeContainer.innerHTML = '';
+
+        // Sort Years descending (2026 -> 2025)
+        const sortedYears = Object.keys(dataStructure).slice().sort((a, b) => b - a);
+
+        sortedYears.forEach(year => {
+            const yearId = `group-year-${year}`;
+            const yearHeader = document.createElement('div');
+            yearHeader.className = 'tree-item year-level';
+            yearHeader.innerHTML = `<span class="arrow">▶</span> <strong>${year}</strong>`;
+            yearHeader.onclick = () => toggleView(yearId, yearHeader);
+            treeContainer.appendChild(yearHeader);
+
+            const yearGroup = document.createElement('div');
+            yearGroup.id = yearId;
+            yearGroup.className = 'nested-group hidden';
+
+            // Sort Months ascending (May -> June)
+            const sortedMonths = Object.keys(dataStructure[year]).slice().sort
