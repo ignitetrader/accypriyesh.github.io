@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Market Sentiment & Strategy Log</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
             --bg-color: #f8fafc;
@@ -140,44 +141,17 @@
             color: #166534;
         }
 
-        .section-title {
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-top: 25px;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-
-        .content-box {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #cbd5e1;
-            line-height: 1.7;
+        .entry-body {
+            line-height: 1.8;
             color: #334155;
-            margin-bottom: 15px;
+            font-size: 1.05rem;
         }
-        .lessons-box { border-left-color: #eab308; }
-        .analysis-box { border-left-color: #3b82f6; }
 
-        /* Formatting Styles for Custom Media Assets */
-        .content-box img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 6px;
-            margin-top: 10px;
-            display: block;
-            border: 1px solid var(--border-color);
-        }
-        
-        .content-box a {
-            color: var(--accent-blue);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .content-box a:hover { text-decoration: underline; }
+        .entry-body p { margin-bottom: 20px; }
+        .entry-body h3 { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; margin-top: 30px; margin-bottom: 10px; font-weight: bold; }
+        .entry-body img { max-width: 100%; height: auto; border-radius: 8px; margin: 15px 0; display: block; border: 1px solid var(--border-color); }
+        .entry-body a { color: var(--accent-blue); text-decoration: none; font-weight: 600; }
+        .entry-body a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -194,8 +168,7 @@
             <p class="subtitle">I am the best trader</p>
         </header>
 
-        <div id="active-log-view">
-            </div>
+        <div id="active-log-view"></div>
     </main>
 </div>
 
@@ -205,32 +178,21 @@
         "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12
     };
 
-    let globalLogs = [];
-
-    // Helper function to turn plain text formatting shortcuts into HTML tags
-    function parseMarkdown(text) {
-        if (!text) return '';
-        let html = text;
-        // Images: ![alt](url) -> <img src="url" alt="alt">
-        html = html.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1">');
-        // Links: [text](url) -> <a href="url" target="_blank">text</a>
-        html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>');
-        return html;
-    }
-
-    async function loadLogsEngine() {
+    async function initJournal() {
         try {
-            // Fetch configuration directly from your separate JSON database file
-            const response = await fetch('logs.json?t=' + new Date().getTime());
-            globalLogs = await response.json();
+            // Automatically fetches the background-generated list file
+            const response = await fetch('feed.json?t=' + new Date().getTime());
+            const logs = await response.json();
             
-            buildTree(globalLogs);
-            if (globalLogs.length > 0) {
-                // Instantly load the first array entry on index load execution
-                renderActiveLog(globalLogs[0].id);
+            buildTree(logs);
+            if (logs.length > 0) {
+                // Instantly load the latest chronological entry
+                fetchAndRenderMarkdown(logs[0]);
+            } else {
+                document.getElementById('active-log-view').innerHTML = "<p>No diary entries found. Create files inside the 'diary' folder!</p>";
             }
-        } catch (error) {
-            document.getElementById('active-log-view').innerHTML = `<p style="color:red;">Error loading logs database configuration.</p>`;
+        } catch (e) {
+            document.getElementById('active-log-view').innerHTML = `<p style="color:red;">Error fetching index feed. Make sure you have added your first markdown file into your 'diary/' folder.</p>`;
         }
     }
 
@@ -239,11 +201,10 @@
         let dataStructure = {};
 
         logs.forEach(log => {
-            const dayNum = parseInt(log.day.replace(/\D/g, ''), 10) || 1;
+            const dayNum = parseInt(log.day, 10);
             if (!dataStructure[log.year]) dataStructure[log.year] = {};
             if (!dataStructure[log.year][log.month]) dataStructure[log.year][log.month] = [];
-            
-            dataStructure[log.year][log.month].push({ id: log.id, day: dayNum, sentiment: log.sentiment });
+            dataStructure[log.year][log.month].push({ ...log, day: dayNum });
         });
 
         treeContainer.innerHTML = '';
@@ -280,14 +241,15 @@
                 dataStructure[year][month].forEach(post => {
                     const dateLink = document.createElement('div');
                     dateLink.className = 'tree-item date-level';
-                    dateLink.id = `node-${post.id}`;
+                    const safeId = `node-${post.year}-${post.month}-${post.day}`;
+                    dateLink.id = safeId;
                     
                     const formattedDay = post.day < 10 ? '0' + post.day : post.day;
-                    dateLink.innerHTML = `📅 Day ${formattedDay} (${post.sentiment})`;
+                    dateLink.innerHTML = `📅 Day ${formattedDay}`;
                     
                     dateLink.onclick = (e) => {
                         e.stopPropagation();
-                        renderActiveLog(post.id);
+                        fetchAndRenderMarkdown(post);
                     };
                     monthGroup.appendChild(dateLink);
                 });
@@ -297,29 +259,35 @@
         });
     }
 
-    function renderActiveLog(id) {
-        const targetLog = globalLogs.find(l => l.id === id);
+    async function fetchAndRenderMarkdown(logItem) {
         const container = document.getElementById('active-log-view');
-        if (!targetLog || !container) return;
+        try {
+            const response = await fetch(`diary/${logItem.filename}?t=` + new Date().getTime());
+            let text = await response.text();
 
-        container.innerHTML = `
-            <article class="log-entry">
-                <div class="entry-header">
-                    <h2>${targetLog.month} ${targetLog.day}, ${targetLog.year}</h2>
-                    <span class="sentiment-badge">${targetLog.sentiment}</span>
-                </div>
-                <div class="section-title">Daily Sentiment & Context</div>
-                <div class="content-box">${parseMarkdown(targetLog.context)}</div>
-                <div class="section-title">Lessons Learnt</div>
-                <div class="content-box lessons-box">${parseMarkdown(targetLog.lessons)}</div>
-                <div class="section-title">Technical & Stock Analysis</div>
-                <div class="content-box analysis-box">${parseMarkdown(targetLog.analysis)}</div>
-            </article>
-        `;
+            let sentiment = logItem.sentiment || "Logged";
+            if (text.startsWith('---')) {
+                const parts = text.split('---');
+                text = parts.slice(2).join('---');
+            }
 
-        document.querySelectorAll('.date-level').forEach(el => el.classList.remove('active-link'));
-        const activeNode = document.getElementById(`node-${id}`);
-        if (activeNode) activeNode.classList.add('active-link');
+            container.innerHTML = `
+                <article class="log-entry">
+                    <div class="entry-header">
+                        <h2>${logItem.month} ${logItem.day}, ${logItem.year}</h2>
+                        <span class="sentiment-badge">${sentiment}</span>
+                    </div>
+                    <div class="entry-body">${marked.parse(text)}</div>
+                </article>
+            `;
+
+            document.querySelectorAll('.date-level').forEach(el => el.classList.remove('active-link'));
+            const targetNode = document.getElementById(`node-${logItem.year}-${logItem.month}-${logItem.day}`);
+            if (targetNode) targetNode.classList.add('active-link');
+
+        } catch (e) {
+            container.innerHTML = `<p style="color:red;">Error loading file diary/${logItem.filename}</p>`;
+        }
     }
 
     function toggleView(id, headerEl) {
@@ -334,7 +302,7 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', loadLogsEngine);
+    document.addEventListener('DOMContentLoaded', initJournal);
 </script>
 </body>
 </html>
