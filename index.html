@@ -182,3 +182,140 @@
 
     <main class="main-content">
         <header class="journal-header">
+            <h1>Market Sentiment & Strategy Log</h1>
+            <p class="subtitle">I am the best trader</p>
+        </header>
+
+        <div id="journal-container">
+
+            <div class="log-entry active" id="entry-2026-06-10" data-year="2026" data-month="June" data-day="10" data-sentiment="Bullish">
+                <div class="entry-header">
+                    <h2>June 10, 2026</h2>
+                    <span class="sentiment-badge bullish">Bullish</span>
+                </div>
+                <div class="section-title">Daily Sentiment & Context</div>
+                <div class="content-box">
+                    Market look incredibly strong today...
+                </div>
+                <div class="section-title">Lessons Learnt</div>
+                <div class="content-box lessons-box">
+                    Keep position sizing accurate.
+                </div>
+                <div class="section-title">Technical & Stock Analysis</div>
+                <div class="content-box analysis-box">
+                    <strong>Trend Check:</strong> Momentum remains healthy above moving averages. Sticking to rules.
+                </div>
+            </div>
+
+            <div class="log-entry" id="entry-2026-06-09" data-year="2026" data-month="June" data-day="09" data-sentiment="Bearish Pullback">
+                <div class="entry-header">
+                    <h2>June 09, 2026</h2>
+                    <span class="sentiment-badge bearish">Bearish Pullback</span>
+                </div>
+                <div class="section-title">Daily Sentiment & Context</div>
+                <div class="content-box">
+                    Heavy distribution in late afternoon trading. Major indices failing to hold critical structural levels.
+                </div>
+                <div class="section-title">Lessons Learnt</div>
+                <div class="content-box lessons-box">
+                    Don't fight the tape when clear intraday selling volume cascades through.
+                </div>
+                <div class="section-title">Technical & Stock Analysis</div>
+                <div class="content-box analysis-box">
+                    <strong>SPY:</strong> Watching psychological resistance targets closely tomorrow.
+                </div>
+            </div>
+
+        </div>
+    </main>
+</div>
+
+<script>
+    function buildNavigationTree() {
+        const entries = document.querySelectorAll('.log-entry');
+        const treeContainer = document.getElementById('archiveTree');
+        let dataStructure = {};
+
+        // 1. Group items by Year and Month
+        entries.forEach(entry => {
+            const id = entry.id;
+            const year = entry.getAttribute('data-year');
+            const month = entry.getAttribute('data-month');
+            const day = entry.getAttribute('data-day');
+            const sentiment = entry.getAttribute('data-sentiment');
+
+            if (!dataStructure[year]) dataStructure[year] = {};
+            if (!dataStructure[year][month]) dataStructure[year][month] = [];
+            
+            dataStructure[year][month].push({ id, day, sentiment });
+        });
+
+        treeContainer.innerHTML = '';
+
+        // 2. Build the HTML tree components dynamically
+        for (let year in dataStructure) {
+            const yearId = `group-year-${year}`;
+            const yearHeader = document.createElement('div');
+            yearHeader.className = 'tree-item year-level';
+            yearHeader.innerHTML = `<span class="arrow">▶</span> <strong>${year}</strong>`;
+            yearHeader.onclick = () => toggleView(yearId, yearHeader);
+            treeContainer.appendChild(yearHeader);
+
+            const yearGroup = document.createElement('div');
+            yearGroup.id = yearId;
+            yearGroup.className = 'nested-group hidden';
+
+            for (let month in dataStructure[year]) {
+                const monthId = `group-month-${year}-${month}`;
+                const monthHeader = document.createElement('div');
+                monthHeader.className = 'tree-item month-level';
+                monthHeader.innerHTML = `<span class="arrow">▶</span> ${month}`;
+                monthHeader.onclick = (e) => { e.stopPropagation(); toggleView(monthId, monthHeader); };
+                yearGroup.appendChild(monthHeader);
+
+                const monthGroup = document.createElement('div');
+                monthGroup.id = monthId;
+                monthGroup.className = 'nested-group hidden';
+
+                dataStructure[year][month].forEach(post => {
+                    const dateLink = document.createElement('div');
+                    dateLink.className = 'tree-item date-level';
+                    if (entries[0].id === post.id) dateLink.className += ' active-link';
+                    dateLink.innerHTML = `📅 Day ${post.day} (${post.sentiment})`;
+                    dateLink.onclick = (e) => {
+                        e.stopPropagation();
+                        showEntry(post.id, dateLink);
+                    };
+                    monthGroup.appendChild(dateLink);
+                });
+
+                yearGroup.appendChild(monthGroup);
+            }
+            treeContainer.appendChild(yearGroup);
+        }
+    }
+
+    function toggleView(id, headerEl) {
+        const target = document.getElementById(id);
+        if (target.classList.contains('hidden')) {
+            target.classList.remove('hidden');
+            headerEl.classList.add('expanded');
+        } else {
+            target.classList.add('hidden');
+            headerEl.classList.remove('expanded');
+        }
+    }
+
+    function showEntry(entryId, linkEl) {
+        document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('active'));
+        document.querySelectorAll('.date-level').forEach(l => l.classList.remove('active-link'));
+        
+        document.getElementById(entryId).classList.add('active');
+        linkEl.classList.add('active-link');
+    }
+
+    window.onload = buildNavigationTree;
+</script>
+
+</body>
+</html>
