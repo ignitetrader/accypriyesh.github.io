@@ -4,11 +4,11 @@
     "year": "2026",
     "month": "June",
     "day": "11",
-    "sentiment": "Bullish Momentum",
-    "context": "Market broke out above the weekly range. Check the raw market metrics on the [Finviz Dashboard](https://finviz.com).",
-    "lessons": "Patience paid off during the morning chop. Sticking strictly to my sizing parameters.",
-    "analysis": "NVIDIA looking strong. See my annotated technical chart below:\n\n![NVIDIA Chart](https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600)\n\n![NVIDIA Chart](https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600)
-\n\n![NVIDIA Chart](https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600)\n\n![NVIDIA Chart](https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600)"
+    "sentiment": "Bullish",
+    "context": "Market overview text goes here...",
+    "lessons": "Lessons text goes here...",
+    "analysis": "This is your first paragraph analyzing the macro environment. The market showed incredibly strong continuation today as major tech stocks pushed out of consolidation loops. See the breakout tracking index chart below:\n\n![Market Breakout Index Chart](https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600)\n\nThis is your second paragraph shifting focus onto specific equity setups. AMD and NVIDIA both found clean support floors right near their daily Exponential Moving Averages. I entered a long position near the morning pull-back configuration.\n\n![NVIDIA Technical Setup](https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=600)\n\nThis is your third and final paragraph summarizing your structural layout rules for the upcoming session. I am keeping my trailing stops incredibly tight tomorrow because of upcoming macroeconomic news events."
+
   },
   {
     "id": "entry-2026-06-10",
