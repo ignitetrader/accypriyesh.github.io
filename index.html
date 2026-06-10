@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Journal & Sentiment Log</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-center: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; letter-spacing: -0.05em; }
+
+        .nav-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .log-entry {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .log-entry.active { display: block; }
+
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2e3d52;
+            padding-bottom: 10px;
+        }
+
+        .date { font-size: 1.25rem; font-weight: bold; }
+        
+        .sentiment-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .bullish { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .bearish { background-color: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+
+        .section-title {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 20px;
+            margin-bottom: 8px;
+        }
+
+        .content-box {
+            background: rgba(0,0,0,0.15);
+            padding: 12px 16px;
+            border-radius: 6px;
+            border-left: 3px solid var(--border-color);
+            line-height: 1.6;
+        }
+        
+        .lessons-box { border-left-color: #eab308; }
+        .analysis-box { border-left-color: #3b82f6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Market Sentiment & Strategy Log</h1>
+        <div class="nav-controls">
+            <label for="dateSelect">Jump to Date: </label>
+            <select id="dateSelect" onchange="switchDate(this.value)">
+                <!-- Options are automatically populated by JavaScript -->
+            </select>
+        </div>
+    </header>
+
+    <main id="journal-container">
+        <!-- ENTRY 1 -->
+        <div class="log-entry active" id="2026-06-10">
+            <div class="entry-header">
+                <div class="date">June 10, 2026</div>
+                <span class="sentiment-badge bullish">Bullish Momentum</span>
+            </div>
+            
+            <div class="section-title">Daily Sentiment & Context</div>
+            <div class="content-box">
+                Market showed strong relative strength today. Tech leading the breakout above the weekly EMA. Volume confirming the moves. Keeping an eye on key semi-conductors showing high squeeze potential.
+            </div>
+
+            <div class="section-title">Lessons Learnt</div>
+            <div class="content-box lessons-box">
+                Patience paid off today. Chasing the morning gap-up usually results in getting trapped, but waiting for the VWAP pull-back confirmation saved capital and provided a clean risk-to-reward entry.
+            </div>
+
+            <div class="section-title">Technical & Stock Analysis</div>
+            <div class="content-box analysis-box">
+                <strong>SOXL / NVIDIA:</strong> Anchored VWAP from recent swing lows acting as a rock-solid floor. Sticking to the plan of trading near the daily 9 EMA. Over-leveraging on choppy days ruins psychological edge—keep position sizes strict.
+            </div>
+        </div>
+
+        <!-- ENTRY 2 -->
+        <div class="log-entry" id="2026-06-09">
+            <div class="entry-header">
+                <div class="date">June 9, 2026</div>
+                <span class="sentiment-badge bearish">Bearish Consolidation</span>
+            </div>
+            
+            <div class="section-title">Daily Sentiment & Context</div>
+            <div class="content-box">
+                Heavy distribution in the afternoon. Major indices failing to hold opening gains. Rotation into defensive sectors apparent.
+            </div>
+
+            <div class="section-title">Lessons Learnt</div>
+            <div class="content-box lessons-box">
+                When momentum dies at the key psychological resistance levels, don't fight the tape. Cut weak positions early instead of hoping for a late-day rescue rally.
+            </div>
+
+            <div class="section-title">Technical & Stock Analysis</div>
+            <div class="content-box analysis-box">
+                <strong>SPY / Tech:</strong> Closed below the daily mid-band. Watching macro indicators and volume flow indicators closely to gauge if this is a minor pullback or a deeper trend shift.
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Automatically generate navigation dropdown from existing entries
+    function populateDropdown() {
+        const select = document.getElementById('dateSelect');
+        const entries = document.querySelectorAll('.log-entry');
+        
+        entries.forEach(entry => {
+            const id = entry.id;
+            const dateText = entry.querySelector('.date').innerText;
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.innerHTML = dateText;
+            select.appendChild(opt);
+        });
+    }
+
+    // Function to handle changing date views
+    function switchDate(targetId) {
+        const entries = document.querySelectorAll('.log-entry');
+        entries.forEach(entry => {
+            entry.classList.remove('active');
+        });
+        document.getElementById(targetId).classList.add('active');
+    }
+
+    // Initialize dropdown on load
+    window.onload = populateDropdown;
+</script>
+
+</body>
+</html>
