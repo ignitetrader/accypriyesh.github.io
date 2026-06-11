@@ -16,6 +16,10 @@
             --accent-blue: #3b82f6;
             --accent-purple: #a855f7;
             --border-color: #cbd5e1;
+            
+            /* Clean Title Themes */
+            --title-diary-blue: #1e40af; /* Rich professional blue for market logs */
+            --subtitle-diary-red: #dc2626; /* Crisp red for risk statement */
         }
 
         body {
@@ -23,7 +27,7 @@
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
-            overflow: hidden; /* Prevents the whole browser window from scrolling */
+            overflow: hidden;
         }
 
         .dashboard-container {
@@ -38,7 +42,7 @@
             background-color: var(--sidebar-bg);
             color: var(--sidebar-text);
             padding: 20px 15px;
-            overflow-y: auto; /* Sidebars scroll independently if menus get too long */
+            overflow-y: auto;
             flex-shrink: 0;
             border-right: 1px solid #334155;
             height: 100vh;
@@ -48,9 +52,9 @@
         .main-workspace-center {
             flex: 1;
             display: flex;
-            flex-direction: column; /* Stacks header vertically above the scroll body */
+            flex-direction: column;
             height: 100vh;
-            overflow: hidden; /* Keeps the outer wrapper completely frozen */
+            overflow: hidden;
         }
 
         .sidebar-right {
@@ -68,9 +72,9 @@
         /* --- STICKY TOP HEADER ZONE --- */
         .journal-header {
             padding: 30px 40px 15px 40px;
-            background-color: var(--bg-color); /* Matches workspace backplate color */
+            background-color: var(--bg-color);
             border-bottom: 2px solid #cbd5e1;
-            flex-shrink: 0; /* Prevents header section from shrinking down */
+            flex-shrink: 0;
             z-index: 10;
             transition: border-color 0.3s ease;
         }
@@ -78,21 +82,26 @@
         .journal-header h1 {
             margin: 0;
             color: var(--text-main);
-            font-size: 1.8rem;
+            font-size: 2.1rem; /* Slightly increased header font sizing */
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            transition: color 0.3s ease;
         }
 
         .subtitle {
-            margin: 5px 0 0 0;
-            font-size: 1rem;
+            margin: 6px 0 0 0;
+            font-size: 1.1rem; /* Increased subtitle text presentation footprint */
             font-weight: 600;
             font-style: italic;
+            line-height: 1.4;
+            transition: color 0.3s ease;
         }
 
         /* --- INDEPENDENT MAIN BODY SCROLL ZONE --- */
         .scrollable-body-container {
             flex: 1;
             padding: 25px 40px 40px 40px;
-            overflow-y: auto; /* ONLY this container will scroll up and down */
+            overflow-y: auto;
             box-sizing: border-box;
         }
 
@@ -193,7 +202,7 @@
     <main class="main-workspace-center">
         <header class="journal-header" id="dynamic-header-area">
             <h1 id="main-title-text">Market Sentiment & Strategy Log</h1>
-            <p class="subtitle" id="subtitle-text" style="color: #eab308;">There are two types to traders, those who manage risk, and those wo don't and eventually blow up. End of story.</p>
+            <p class="subtitle" id="subtitle-text">There are two types to traders, those who manage risk, and those wo don't and eventually blow up. End of story.</p>
         </header>
         
         <div class="scrollable-body-container">
@@ -292,11 +301,12 @@
     }
 
     async function fetchAndRenderLog(logItem) {
+        // Apply your requested styling modifications for the Diary View
         document.getElementById('dynamic-header-area').style.borderBottomColor = "#cbd5e1";
         document.getElementById('main-title-text').innerText = "Market Sentiment & Strategy Log";
-        document.getElementById('main-title-text').style.color = "var(--text-main)";
+        document.getElementById('main-title-text').style.color = "var(--title-diary-blue)";
         document.getElementById('subtitle-text').innerText = "There are two types to traders, those who manage risk, and those wo don't and eventually blow up. End of story.";
-        document.getElementById('subtitle-text').style.color = "#eab308";
+        document.getElementById('subtitle-text').style.color = "var(--subtitle-diary-red)";
 
         const container = document.getElementById('unified-display-view');
         container.innerHTML = "<p style='padding: 20px;'>Loading log content...</p>";
@@ -320,7 +330,6 @@
             const target = document.getElementById(logNodeRegistry[logItem.filename]);
             if (target) target.classList.add('active-link');
             
-            // Auto reset scrollbar back to absolute top on note reload selection change
             document.querySelector('.scrollable-body-container').scrollTop = 0;
         } catch (e) { container.innerHTML = `<p style="color:red; padding: 20px;">Error retrieving target log file entry.</p>`; }
     }
@@ -344,6 +353,7 @@
     }
 
     async function fetchAndRenderNote(noteItem) {
+        // Keep notes looking independent with separate colors when toggled active
         document.getElementById('dynamic-header-area').style.borderBottomColor = "#e9d5ff";
         document.getElementById('main-title-text').innerText = "Technical Core Studies";
         document.getElementById('main-title-text').style.color = "#581c87";
@@ -376,7 +386,6 @@
         } catch (e) { container.innerHTML = `<p style="color:red; padding: 20px;">Error retrieving target reference asset file.</p>`; }
     }
 
-    // Controls collapsible folders in sidebar tree
     function toggleView(id, headerEl) {
         const target = document.getElementById(id);
         if (!target) return;
