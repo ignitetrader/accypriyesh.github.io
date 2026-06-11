@@ -21,33 +21,31 @@ jobs:
         run: |
           echo "[" > feed.json
           first=true
-          
           if [ -d "diary" ] && [ "$(ls -A diary/*.md 2>/dev/null)" ]; then
-            cd diary
-            for file in $(ls -r *.md 2>/dev/null); do
-              filename=$(basename "$file")
-              year=$(echo "$filename" | cut -d'-' -f1)
-              month_num=$(echo "$filename" | cut -d'-' -f2)
-              day=$(echo "$filename" | cut -d'-' -f3 | cut -d'.' -f1)
-              
-              case "$month_num" in
-                01) month="January" ;; 02) month="February" ;; 03) month="March" ;;
-                04) month="April" ;;   05) month="May" ;;      06) month="June" ;;
-                07) month="July" ;;    08) month="August" ;;   09) month="September" ;;
-                10) month="October" ;; 11) month="November" ;; 12) month="December" ;;
-              esac
-              
-              sentiment="Logged"
-              if grep -q "sentiment:" "$filename"; then
-                sentiment=$(grep "sentiment:" "$filename" | head -n 1 | cut -d':' -f2- | xargs)
-              fi
-
-              cd ..
-              if [ "$first" = true ]; then first=false; else echo "," >> feed.json; fi
-              echo "  {\"filename\": \"$filename\", \"year\": \"$year\", \"month\": \"$month\", \"day\": \"$day\", \"sentiment\": \"$sentiment\"}" >> feed.json
+            (
               cd diary
-            done
-            cd ..
+              for file in $(ls -r *.md 2>/dev/null); do
+                filename=$(basename "$file")
+                year=$(echo "$filename" | cut -d'-' -f1)
+                month_num=$(echo "$filename" | cut -d'-' -f2)
+                day=$(echo "$filename" | cut -d'-' -f3 | cut -d'.' -f1)
+                
+                case "$month_num" in
+                  01) month="January" ;; 02) month="February" ;; 03) month="March" ;;
+                  04) month="April" ;;   05) month="May" ;;      06) month="June" ;;
+                  07) month="July" ;;    08) month="August" ;;   09) month="September" ;;
+                  10) month="October" ;; 11) month="November" ;; 12) month="December" ;;
+                esac
+                
+                sentiment="Logged"
+                if grep -q "sentiment:" "$filename"; then
+                  sentiment=$(grep "sentiment:" "$filename" | head -n 1 | cut -d':' -f2- | xargs)
+                fi
+
+                if [ "$first" = true ]; then first=false; else echo "," >> ../feed.json; fi
+                echo "  {\"filename\": \"$filename\", \"year\": \"$year\", \"month\": \"$month\", \"day\": \"$day\", \"sentiment\": \"$sentiment\"}" >> ../feed.json
+              done
+            )
           fi
           echo "]" >> feed.json
 
@@ -55,22 +53,18 @@ jobs:
         run: |
           echo "[" > notes-feed.json
           first=true
-          
           if [ -d "notes" ] && [ "$(ls -A notes/*.md 2>/dev/null)" ]; then
-            cd notes
-            for file in $(ls -r *.md 2>/dev/null); do
-              filename=$(basename "$file")
-              
-              # Extract the first H1 header for a clean display title
-              title=$(grep -m 1 "^#" "$filename" | sed 's/^#* //g' | xargs)
-              if [ -z "$title" ]; then title=$(echo "$filename" | cut -d'.' -f1); fi
-
-              cd ..
-              if [ "$first" = true ]; then first=false; else echo "," >> notes-feed.json; fi
-              echo "  {\"filename\": \"$filename\", \"title\": \"$title\"}" >> notes-feed.json
+            (
               cd notes
-            done
-            cd ..
+              for file in $(ls -r *.md 2>/dev/null); do
+                filename=$(basename "$file")
+                title=$(grep -m 1 "^#" "$filename" | sed 's/^#* //g' | xargs)
+                if [ -z "$title" ]; then title=$(echo "$filename" | cut -d'.' -f1); fi
+
+                if [ "$first" = true ]; then first=false; else echo "," >> ../notes-feed.json; fi
+                echo "  {\"filename\": \"$filename\", \"title\": \"$title\"}" >> ../notes-feed.json
+              done
+            )
           fi
           echo "]" >> notes-feed.json
 
