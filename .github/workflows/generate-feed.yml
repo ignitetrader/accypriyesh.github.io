@@ -1,8 +1,9 @@
-name: Auto Generate Journal Feed
+name: Auto Generate Journal and Notes Feeds
 on:
   push:
     paths:
       - 'diary/**'
+      - 'notes/**'
 
 permissions:
   contents: write
@@ -16,58 +17,64 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Scan Files and Build Feed
+      - name: Build Diary Feed
         run: |
           echo "[" > feed.json
           first=true
-          
-          cd diary
-          
-          for file in $(ls -r *.md 2>/dev/null); do
-            filename=$(basename "$file")
-            year=$(echo "$filename" | cut -d'-' -f1)
-            month_num=$(echo "$filename" | cut -d'-' -f2)
-            day=$(echo "$filename" | cut -d'-' -f3 | cut -d'.' -f1)
-            
-            case "$month_num" in
-              01) month="January" ;;
-              02) month="February" ;;
-              03) month="March" ;;
-              04) month="April" ;;
-              05) month="May" ;;
-              06) month="June" ;;
-              07) month="July" ;;
-              08) month="August" ;;
-              09) month="September" ;;
-              10) month="October" ;;
-              11) month="November" ;;
-              12) month="December" ;;
-            esac
-            
-            sentiment="Logged"
-            if grep -q "sentiment:" "$filename"; then
-              sentiment=$(grep "sentiment:" "$filename" | head -n 1 | cut -d':' -f2- | xargs)
-            fi
-
-            cd ..
-
-            if [ "$first" = true ]; then
-              first=false
-            else
-              echo "," >> feed.json
-            fi
-            
-            echo "  {\"filename\": \"$filename\", \"year\": \"$year\", \"month\": \"$month\", \"day\": \"$day\", \"sentiment\": \"$sentiment\"}" >> feed.json
-            
+          if [ -d "diary" ] && [ "$(ls -A diary/*.md 2>/dev/null)" ]; then
             cd diary
-          done
-          
-          cd ..
+            for file in $(ls -r *.md 2>/dev/null); do
+              filename=$(basename "$file")
+              year=$(echo "$filename" | cut -d'-' -f1)
+              month_num=$(echo "$filename" | cut -d'-' -f2)
+              day=$(echo "$filename" | cut -d'-' -f3 | cut -d'.' -f1)
+              
+              case "$month_num" in
+                01) month="January" ;; 02) month="February" ;; 03) month="March" ;;
+                04) month="April" ;;   05) month="May" ;;      06) month="June" ;;
+                07) month="July" ;;    08) month="August" ;;   09) month="September" ;;
+                10) month="October" ;; 11) month="November" ;; 12) month="December" ;;
+              esac
+              
+              sentiment="Logged"
+              if grep -q "sentiment:" "$filename"; then
+                sentiment=$(grep "sentiment:" "$filename" | head -n 1 | cut -d':' -f2- | xargs)
+              fi
+
+              cd ..
+              if [ "$first" = true ]; then first=false; else echo "," >> feed.json; fi
+              echo "  {\"filename\": \"$filename\", \"year\": \"$year\", \"month\": \"$month\", \"day\": \"$day\", \"sentiment\": \"$sentiment\"}" >> feed.json
+              cd diary
+            done
+            cd ..
+          fi
           echo "]" >> feed.json
 
-      - name: Commit and Push Updated Feed
+      - name: Build Notes Feed
+        run: |
+          echo "[" > notes-feed.json
+          first=true
+          if [ -d "notes" ] && [ "$(ls -A notes/*.md 2>/dev/null)" ]; then
+            cd notes
+            for file in $(ls -r *.md 2>/dev/null); do
+              filename=$(basename "$file")
+              
+              # Pull the title from the first header line or default to filename
+              title=$(grep -m 1 "^#" "$filename" | sed 's/^#* //g' | xargs)
+              if [ -z "$title" ]; then title=$(echo "$filename" | cut -d'.' -f1); fi
+
+              cd ..
+              if [ "$first" = true ]; then first=false; else echo "," >> notes-feed.json; fi
+              echo "  {\"filename\": \"$filename\", \"title\": \"$title\"}" >> notes-feed.json
+              cd notes
+            done
+            cd notes
+          fi
+          echo "]" >> notes-feed.json
+
+      - name: Commit and Push Updated Feeds
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add feed.json
-          git diff-index --quiet HEAD || git commit -m "Automated feed sync [skip ci]" && git push
+          git add feed.json notes-feed.json
+          git diff-index --quiet HEAD || git commit -m "Automated log and notes sync [skip ci]" && git push
