@@ -180,19 +180,17 @@
 
     async function initJournal() {
         try {
-            // Automatically fetches the background-generated list file
             const response = await fetch('feed.json?t=' + new Date().getTime());
             const logs = await response.json();
             
             buildTree(logs);
             if (logs.length > 0) {
-                // Instantly load the latest chronological entry
                 fetchAndRenderMarkdown(logs[0]);
             } else {
                 document.getElementById('active-log-view').innerHTML = "<p>No diary entries found. Create files inside the 'diary' folder!</p>";
             }
         } catch (e) {
-            document.getElementById('active-log-view').innerHTML = `<p style="color:red;">Error fetching index feed. Make sure you have added your first markdown file into your 'diary/' folder.</p>`;
+            document.getElementById('active-log-view').innerHTML = `<p style="color:red;">Error fetching index feed. Make sure your first markdown file has compiled in your folder.</p>`;
         }
     }
 
@@ -266,9 +264,12 @@
             let text = await response.text();
 
             let sentiment = logItem.sentiment || "Logged";
-            if (text.startsWith('---')) {
-                const parts = text.split('---');
-                text = parts.slice(2).join('---');
+            let markdownContent = text;
+
+            // FAILSAFE PARSER: Strip front-matter regardless of spacing/carriage return mismatches
+            if (text.trim().startsWith('---')) {
+                // This regex clears out metadata fences cleanly
+                markdownContent = text.replace(/^---[\s\S]*?---/, '');
             }
 
             container.innerHTML = `
@@ -277,7 +278,7 @@
                         <h2>${logItem.month} ${logItem.day}, ${logItem.year}</h2>
                         <span class="sentiment-badge">${sentiment}</span>
                     </div>
-                    <div class="entry-body">${marked.parse(text)}</div>
+                    <div class="entry-body">${marked.parse(markdownContent)}</div>
                 </article>
             `;
 
