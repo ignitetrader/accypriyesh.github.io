@@ -23,7 +23,7 @@
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
-            overflow: hidden;
+            overflow: hidden; /* Prevents the whole browser window from scrolling */
         }
 
         .dashboard-container {
@@ -32,23 +32,25 @@
             width: 100vw;
         }
 
-        /* 3-Section Screen Blueprint Split */
+        /* --- 3-SECTION APP LAYOUT SYSTEM --- */
         .sidebar-left {
             width: 240px;
             background-color: var(--sidebar-bg);
             color: var(--sidebar-text);
             padding: 20px 15px;
-            overflow-y: auto;
+            overflow-y: auto; /* Sidebars scroll independently if menus get too long */
             flex-shrink: 0;
             border-right: 1px solid #334155;
+            height: 100vh;
+            box-sizing: border-box;
         }
 
         .main-workspace-center {
             flex: 1;
-            padding: 40px;
-            overflow-y: auto;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* Stacks header vertically above the scroll body */
+            height: 100vh;
+            overflow: hidden; /* Keeps the outer wrapper completely frozen */
         }
 
         .sidebar-right {
@@ -59,24 +61,17 @@
             overflow-y: auto;
             flex-shrink: 0;
             border-left: 1px solid #334155;
+            height: 100vh;
+            box-sizing: border-box;
         }
 
-        /* Section Header Layout Style */
-        .sidebar-header {
-            font-size: 0.85rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #94a3b8;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 10px;
-        }
-
+        /* --- STICKY TOP HEADER ZONE --- */
         .journal-header {
-            margin-bottom: 30px;
+            padding: 30px 40px 15px 40px;
+            background-color: var(--bg-color); /* Matches workspace backplate color */
             border-bottom: 2px solid #cbd5e1;
-            padding-bottom: 15px;
+            flex-shrink: 0; /* Prevents header section from shrinking down */
+            z-index: 10;
             transition: border-color 0.3s ease;
         }
 
@@ -93,7 +88,26 @@
             font-style: italic;
         }
 
-        /* Central Layout Card Content Display */
+        /* --- INDEPENDENT MAIN BODY SCROLL ZONE --- */
+        .scrollable-body-container {
+            flex: 1;
+            padding: 25px 40px 40px 40px;
+            overflow-y: auto; /* ONLY this container will scroll up and down */
+            box-sizing: border-box;
+        }
+
+        /* --- CARDS & MARKDOWN MARKUP LAYOUT --- */
+        .sidebar-header {
+            font-size: 0.85rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
         .content-card-body {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -101,6 +115,7 @@
             padding: 30px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
             min-height: 200px;
+            margin-bottom: 20px;
         }
 
         .entry-header {
@@ -134,7 +149,7 @@
         .rendered-markdown h3 { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; margin-top: 30px; margin-bottom: 10px; font-weight: bold; }
         .rendered-markdown img { max-width: 100%; height: auto; border-radius: 8px; margin: 20px 0; display: block; border: 1px solid var(--border-color); }
 
-        /* Navigation Links Tree UI Elements */
+        /* --- TREE SELECTION NAVIGATION --- */
         .tree-item {
             cursor: pointer;
             padding: 8px 10px;
@@ -181,7 +196,9 @@
             <p class="subtitle" id="subtitle-text" style="color: #eab308;">I am the best trader</p>
         </header>
         
-        <div id="unified-display-view"></div>
+        <div class="scrollable-body-container">
+            <div id="unified-display-view"></div>
+        </div>
     </main>
 
     <aside class="sidebar-right">
@@ -201,7 +218,6 @@
     let noteNodeRegistry = {};
 
     async function initWorkspace() {
-        // Load Left Navigation Hierarchy Data
         try {
             const res = await fetch('feed.json?t=' + Date.now());
             const logs = await res.json();
@@ -211,17 +227,15 @@
             document.getElementById('unified-display-view').innerHTML = "<p style='color:red; padding: 20px;'>Initializing server feed configurations...</p>";
         }
 
-        // Load Right Navigation Hierarchy Data
         try {
             const res = await fetch('notes-feed.json?t=' + Date.now());
             const notes = await res.json();
             buildNotesTree(notes);
         } catch (e) {
-            console.log("Notes feed currently unpopulated.");
+            console.log("Notes feed currently empty.");
         }
     }
 
-    // --- LEFT BAR LOGICS: DAILY ANALYSIS FOLDERS ---
     function buildLogTree(logs) {
         const container = document.getElementById('logTree');
         let dataStructure = {};
@@ -278,7 +292,6 @@
     }
 
     async function fetchAndRenderLog(logItem) {
-        // Switch Header Styles to Strategy Theme
         document.getElementById('dynamic-header-area').style.borderBottomColor = "#cbd5e1";
         document.getElementById('main-title-text').innerText = "Market Sentiment & Strategy Log";
         document.getElementById('main-title-text').style.color = "var(--text-main)";
@@ -286,6 +299,8 @@
         document.getElementById('subtitle-text').style.color = "#eab308";
 
         const container = document.getElementById('unified-display-view');
+        container.innerHTML = "<p style='padding: 20px;'>Loading log content...</p>";
+        
         try {
             const res = await fetch(`https://raw.githubusercontent.com/accypriyesh/accypriyesh.github.io/main/diary/${logItem.filename}?t=` + Date.now());
             let text = await res.text();
@@ -301,14 +316,15 @@
                 </article>
             `;
             
-            // Manage Active Sidebar Highlights Clearances
             document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active-link'));
             const target = document.getElementById(logNodeRegistry[logItem.filename]);
             if (target) target.classList.add('active-link');
-        } catch (e) { container.innerHTML = `<p style="color:red; padding: 20px;">Error retrieving selected diary asset file.</p>`; }
+            
+            // Auto reset scrollbar back to absolute top on note reload selection change
+            document.querySelector('.scrollable-body-container').scrollTop = 0;
+        } catch (e) { container.innerHTML = `<p style="color:red; padding: 20px;">Error retrieving target log file entry.</p>`; }
     }
 
-    // --- RIGHT BAR LOGICS: STUDY MODULE SELECTION ---
     function buildNotesTree(notes) {
         const container = document.getElementById('notesTree');
         container.innerHTML = '';
@@ -328,14 +344,15 @@
     }
 
     async function fetchAndRenderNote(noteItem) {
-        // Switch Header Styles to Notes Theme Dynamically
         document.getElementById('dynamic-header-area').style.borderBottomColor = "#e9d5ff";
-        document.getElementById('main-title-text').innerText = "Swing Trading - Long Live";
+        document.getElementById('main-title-text').innerText = "Technical Core Studies";
         document.getElementById('main-title-text').style.color = "#581c87";
-        document.getElementById('subtitle-text').innerText = "Study Notes from Multiple Sources";
+        document.getElementById('subtitle-text').innerText = "Structured Reference Library";
         document.getElementById('subtitle-text').style.color = "var(--accent-purple)";
 
         const container = document.getElementById('unified-display-view');
+        container.innerHTML = "<p style='padding: 20px;'>Loading reference file...</p>";
+        
         try {
             const res = await fetch(`https://raw.githubusercontent.com/accypriyesh/accypriyesh.github.io/main/notes/${noteItem.filename}?t=` + Date.now());
             let text = await res.text();
@@ -351,13 +368,15 @@
                 </article>
             `;
             
-            // Manage Active Sidebar Highlights Clearances
             document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active-link'));
             const target = document.getElementById(noteNodeRegistry[noteItem.filename]);
-            if (target) target.addList = target.classList.add('active-link');
-        } catch (e) { container.innerHTML = `<p style="color:red; padding: 20px;">Error retrieving selected note file asset.</p>`; }
+            if (target) target.classList.add('active-link');
+            
+            document.querySelector('.scrollable-body-container').scrollTop = 0;
+        } catch (e) { container.innerHTML = `<p style="color:red; padding: 20px;">Error retrieving target reference asset file.</p>`; }
     }
 
+    // Controls collapsible folders in sidebar tree
     function toggleView(id, headerEl) {
         const target = document.getElementById(id);
         if (!target) return;
