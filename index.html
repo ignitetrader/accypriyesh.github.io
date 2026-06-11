@@ -205,8 +205,6 @@
             const dayNum = parseInt(log.day, 10);
             if (!dataStructure[log.year]) dataStructure[log.year] = {};
             if (!dataStructure[log.year][log.month]) dataStructure[log.year][log.month] = [];
-            
-            // Track element array positions with index fields to guarantee safe lookups
             dataStructure[log.year][log.month].push({ ...log, day: dayNum, registryIndex: index });
         });
 
@@ -218,7 +216,6 @@
             const yearHeader = document.createElement('div');
             yearHeader.className = 'tree-item year-level';
             
-            // Auto expand the top structural year group folder automatically
             if (yIdx === 0) yearHeader.className += ' expanded';
             
             yearHeader.innerHTML = `<span class="arrow">▶</span> <strong>${year}</strong>`;
@@ -246,7 +243,6 @@
                 monthGroup.id = monthId;
                 monthGroup.className = (yIdx === 0 && mIdx === 0) ? 'nested-group' : 'nested-group hidden';
 
-                // Ensure single-digit days sort chronologically inside month view panels
                 dataStructure[year][month].sort((a, b) => a.day - b.day);
 
                 dataStructure[year][month].forEach(post => {
@@ -275,8 +271,8 @@
     async function fetchAndRenderMarkdown(logItem) {
         const container = document.getElementById('active-log-view');
         try {
-            // FIXED: Fetches target filename directly as recorded from feed map structure
-            const response = await fetch(`./diary/${logItem.filename}?t=` + new Date().getTime());
+            // FIXED: Using a clean absolute subfolder location string to bypass query string parameter layout bugs
+            const response = await fetch(`diary/${logItem.filename}?t=` + new Date().getTime());
             
             if (!response.ok) {
                 throw new Error(`Server returned status layout parameters: ${response.status}`);
