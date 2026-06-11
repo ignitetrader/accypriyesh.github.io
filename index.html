@@ -178,6 +178,8 @@
         "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12
     };
 
+    let safeNodeRegistry = {};
+
     async function initJournal() {
         try {
             const response = await fetch('feed.json?t=' + new Date().getTime());
@@ -190,57 +192,70 @@
                 document.getElementById('active-log-view').innerHTML = "<p>No diary entries found. Create files inside the 'diary' folder!</p>";
             }
         } catch (e) {
-            document.getElementById('active-log-view').innerHTML = `<p style="color:red;">Error fetching index feed. Make sure your first markdown file has compiled in your folder.</p>`;
+            document.getElementById('active-log-view').innerHTML = `<p style="color:red; padding: 20px;">Error fetching index feed template parameters.</p>`;
         }
     }
 
     function buildTree(logs) {
         const treeContainer = document.getElementById('archiveTree');
         let dataStructure = {};
+        safeNodeRegistry = {};
 
-        logs.forEach(log => {
+        logs.forEach((log, index) => {
             const dayNum = parseInt(log.day, 10);
             if (!dataStructure[log.year]) dataStructure[log.year] = {};
             if (!dataStructure[log.year][log.month]) dataStructure[log.year][log.month] = [];
-            dataStructure[log.year][log.month].push({ ...log, day: dayNum });
+            
+            // Track element array positions with index fields to guarantee safe lookups
+            dataStructure[log.year][log.month].push({ ...log, day: dayNum, registryIndex: index });
         });
 
         treeContainer.innerHTML = '';
         const sortedYears = Object.keys(dataStructure).sort((a, b) => b - a);
 
-        sortedYears.forEach(year => {
+        sortedYears.forEach((year, yIdx) => {
             const yearId = `group-year-${year}`;
             const yearHeader = document.createElement('div');
             yearHeader.className = 'tree-item year-level';
+            
+            // Auto expand the top structural year group folder automatically
+            if (yIdx === 0) yearHeader.className += ' expanded';
+            
             yearHeader.innerHTML = `<span class="arrow">▶</span> <strong>${year}</strong>`;
             yearHeader.onclick = () => toggleView(yearId, yearHeader);
             treeContainer.appendChild(yearHeader);
 
             const yearGroup = document.createElement('div');
             yearGroup.id = yearId;
-            yearGroup.className = 'nested-group hidden';
+            yearGroup.className = yIdx === 0 ? 'nested-group' : 'nested-group hidden';
 
             const sortedMonths = Object.keys(dataStructure[year]).sort((a, b) => (monthOrder[a] || 0) - (monthOrder[b] || 0));
 
-            sortedMonths.forEach(month => {
+            sortedMonths.forEach((month, mIdx) => {
                 const monthId = `group-month-${year}-${month}`;
                 const monthHeader = document.createElement('div');
                 monthHeader.className = 'tree-item month-level';
+                
+                if (yIdx === 0 && mIdx === 0) monthHeader.className += ' expanded';
+                
                 monthHeader.innerHTML = `<span class="arrow">▶</span> ${month}`;
                 monthHeader.onclick = (e) => { e.stopPropagation(); toggleView(monthId, monthHeader); };
                 yearGroup.appendChild(monthHeader);
 
                 const monthGroup = document.createElement('div');
                 monthGroup.id = monthId;
-                monthGroup.className = 'nested-group hidden';
+                monthGroup.className = (yIdx === 0 && mIdx === 0) ? 'nested-group' : 'nested-group hidden';
 
+                // Ensure single-digit days sort chronologically inside month view panels
                 dataStructure[year][month].sort((a, b) => a.day - b.day);
 
                 dataStructure[year][month].forEach(post => {
                     const dateLink = document.createElement('div');
                     dateLink.className = 'tree-item date-level';
-                    const safeId = `node-${post.year}-${post.month}-${post.day}`;
-                    dateLink.id = safeId;
+                    
+                    const internalLinkKey = `node-id-${post.registryIndex}`;
+                    dateLink.id = internalLinkKey;
+                    safeNodeRegistry[post.filename] = internalLinkKey;
                     
                     const formattedDay = post.day < 10 ? '0' + post.day : post.day;
                     dateLink.innerHTML = `📅 Day ${formattedDay}`;
@@ -260,11 +275,11 @@
     async function fetchAndRenderMarkdown(logItem) {
         const container = document.getElementById('active-log-view');
         try {
-            // FIXED: Using ./ ensures it looks dynamically inside the current working root directory
+            // FIXED: Fetches target filename directly as recorded from feed map structure
             const response = await fetch(`./diary/${logItem.filename}?t=` + new Date().getTime());
             
             if (!response.ok) {
-                throw new Error(`Server returned status: ${response.status}`);
+                throw new Error(`Server returned status layout parameters: ${response.status}`);
             }
             
             let text = await response.text();
@@ -285,11 +300,12 @@
             `;
 
             document.querySelectorAll('.date-level').forEach(el => el.classList.remove('active-link'));
-            const targetNode = document.getElementById(`node-${logItem.year}-${logItem.month}-${logItem.day}`);
+            const activeNodeId = safeNodeRegistry[logItem.filename];
+            const targetNode = document.getElementById(activeNodeId);
             if (targetNode) targetNode.classList.add('active-link');
 
         } catch (e) {
-            container.innerHTML = `<p style="color:red; padding: 20px;">Unable to display text body content. (Technical Details: ${e.message}). <br><br>Please check that your folder name matches the file path case exactly.</p>`;
+            container.innerHTML = `<p style="color:red; padding: 20px;">Unable to display text body content. (Technical Details: ${e.message}).</p>`;
         }
     }
 
