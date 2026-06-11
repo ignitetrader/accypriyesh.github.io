@@ -375,4 +375,44 @@
         `;
 
         const container = document.getElementById('unified-display-view');
-        container.innerHTML = "<p style='padding:
+        container.innerHTML = "<p style='padding: 20px;'>Loading reference file...</p>";
+        
+        try {
+            const res = await fetch(`https://raw.githubusercontent.com/accypriyesh/accypriyesh.github.io/main/notes/${noteItem.filename}?t=` + Date.now());
+            let text = await res.text();
+            if (text.trim().startsWith('---')) text = text.replace(/^---[\s\S]*?---/, '');
+
+            container.innerHTML = `
+                <article class="content-card-body" style="border-top: 4px solid var(--accent-purple);">
+                    <div class="entry-header">
+                        <h2>${noteItem.title}</h2>
+                        <span class="sentiment-badge badge-note">Study Note</span>
+                    </div>
+                    <div class="rendered-markdown">${marked.parse(text)}</div>
+                </article>
+            `;
+            
+            document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active-link'));
+            const target = document.getElementById(noteNodeRegistry[noteItem.filename]);
+            if (target) target.classList.add('active-link');
+            
+            document.querySelector('.scrollable-body-container').scrollTop = 0;
+        } catch (e) { container.innerHTML = `<p style="color:red; padding: 20px;">Error retrieving target reference asset file.</p>`; }
+    }
+
+    function toggleView(id, headerEl) {
+        const target = document.getElementById(id);
+        if (!target) return;
+        if (target.classList.contains('hidden')) {
+            target.classList.remove('hidden');
+            headerEl.classList.add('expanded');
+        } else {
+            target.classList.add('hidden');
+            headerEl.classList.remove('expanded');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initWorkspace);
+</script>
+</body>
+</html>
