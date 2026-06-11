@@ -21,6 +21,7 @@ jobs:
         run: |
           echo "[" > feed.json
           first=true
+          
           if [ -d "diary" ] && [ "$(ls -A diary/*.md 2>/dev/null)" ]; then
             cd diary
             for file in $(ls -r *.md 2>/dev/null); do
@@ -54,12 +55,13 @@ jobs:
         run: |
           echo "[" > notes-feed.json
           first=true
+          
           if [ -d "notes" ] && [ "$(ls -A notes/*.md 2>/dev/null)" ]; then
             cd notes
             for file in $(ls -r *.md 2>/dev/null); do
               filename=$(basename "$file")
               
-              # Pull the title from the first header line or default to filename
+              # Extract the first H1 header for a clean display title
               title=$(grep -m 1 "^#" "$filename" | sed 's/^#* //g' | xargs)
               if [ -z "$title" ]; then title=$(echo "$filename" | cut -d'.' -f1); fi
 
@@ -68,7 +70,7 @@ jobs:
               echo "  {\"filename\": \"$filename\", \"title\": \"$title\"}" >> notes-feed.json
               cd notes
             done
-            cd notes
+            cd ..
           fi
           echo "]" >> notes-feed.json
 
