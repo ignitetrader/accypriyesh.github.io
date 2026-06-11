@@ -271,8 +271,8 @@
     async function fetchAndRenderMarkdown(logItem) {
         const container = document.getElementById('active-log-view');
         try {
-            // FIXED: Using a clean absolute subfolder location string to bypass query string parameter layout bugs
-            const response = await fetch(`diary/${logItem.filename}?t=` + new Date().getTime());
+            // FIXED: Fetches directly from raw.githubusercontent.com to force immediate sync and bypass CDN delays completely
+            const response = await fetch(`https://raw.githubusercontent.com/accypriyesh/accypriyesh.github.io/main/diary/${logItem.filename}?t=` + new Date().getTime());
             
             if (!response.ok) {
                 throw new Error(`Server returned status layout parameters: ${response.status}`);
