@@ -18,8 +18,8 @@
             --border-color: #cbd5e1;
             
             /* Clean Title Themes */
-            --title-diary-blue: #1e40af; /* Rich professional blue for market logs */
-            --subtitle-diary-red: #dc2626; /* Crisp red for risk statement */
+            --title-diary-blue: #1e40af;
+            --subtitle-diary-red: #dc2626;
         }
 
         body {
@@ -82,15 +82,23 @@
         .journal-header h1 {
             margin: 0;
             color: var(--text-main);
-            font-size: 2.1rem; /* Slightly increased header font sizing */
+            font-size: 2.1rem;
             font-weight: 700;
             letter-spacing: -0.02em;
             transition: color 0.3s ease;
         }
 
+        /* Container to keep stacked subtitles neat */
+        .subtitle-container {
+            margin-top: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px; /* Clean gap between your rules */
+        }
+
         .subtitle {
-            margin: 6px 0 0 0;
-            font-size: 1.1rem; /* Increased subtitle text presentation footprint */
+            margin: 0;
+            font-size: 1.1rem;
             font-weight: 600;
             font-style: italic;
             line-height: 1.4;
@@ -202,7 +210,8 @@
     <main class="main-workspace-center">
         <header class="journal-header" id="dynamic-header-area">
             <h1 id="main-title-text">Market Sentiment & Strategy Log</h1>
-            <p class="subtitle" id="subtitle-text">There are two types to traders, those who manage risk, and those wo don't and eventually blow up. End of story.</p>
+            <div class="subtitle-container" id="dynamic-subtitle-area">
+                </div>
         </header>
         
         <div class="scrollable-body-container">
@@ -301,12 +310,15 @@
     }
 
     async function fetchAndRenderLog(logItem) {
-        // Apply your requested styling modifications for the Diary View
+        // Render dual-stacked rules in red for Diary View
         document.getElementById('dynamic-header-area').style.borderBottomColor = "#cbd5e1";
         document.getElementById('main-title-text').innerText = "Market Sentiment & Strategy Log";
         document.getElementById('main-title-text').style.color = "var(--title-diary-blue)";
-        document.getElementById('subtitle-text').innerText = "There are two types to traders, those who manage risk, and those wo don't and eventually blow up. End of story.";
-        document.getElementById('subtitle-text').style.color = "var(--subtitle-diary-red)";
+        
+        document.getElementById('dynamic-subtitle-area').innerHTML = `
+            <p class="subtitle" style="color: var(--subtitle-diary-red);">There are two types to traders, those who manage risk, and those wo don't and eventually blow up. End of story.</p>
+            <p class="subtitle" style="color: var(--subtitle-diary-red);">Put stoploss on all open positions on daily basis - non negotiable</p>
+        `;
 
         const container = document.getElementById('unified-display-view');
         container.innerHTML = "<p style='padding: 20px;'>Loading log content...</p>";
@@ -353,52 +365,14 @@
     }
 
     async function fetchAndRenderNote(noteItem) {
-        // Keep notes looking independent with separate colors when toggled active
+        // Dynamic check back to standard purple reference subheaders when Study Notes are active
         document.getElementById('dynamic-header-area').style.borderBottomColor = "#e9d5ff";
         document.getElementById('main-title-text').innerText = "Technical Core Studies";
         document.getElementById('main-title-text').style.color = "#581c87";
-        document.getElementById('subtitle-text').innerText = "Structured Reference Library";
-        document.getElementById('subtitle-text').style.color = "var(--accent-purple)";
+        
+        document.getElementById('dynamic-subtitle-area').innerHTML = `
+            <p class="subtitle" style="color: var(--accent-purple);">Structured Reference Library</p>
+        `;
 
         const container = document.getElementById('unified-display-view');
-        container.innerHTML = "<p style='padding: 20px;'>Loading reference file...</p>";
-        
-        try {
-            const res = await fetch(`https://raw.githubusercontent.com/accypriyesh/accypriyesh.github.io/main/notes/${noteItem.filename}?t=` + Date.now());
-            let text = await res.text();
-            if (text.trim().startsWith('---')) text = text.replace(/^---[\s\S]*?---/, '');
-
-            container.innerHTML = `
-                <article class="content-card-body" style="border-top: 4px solid var(--accent-purple);">
-                    <div class="entry-header">
-                        <h2>${noteItem.title}</h2>
-                        <span class="sentiment-badge badge-note">Study Note</span>
-                    </div>
-                    <div class="rendered-markdown">${marked.parse(text)}</div>
-                </article>
-            `;
-            
-            document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active-link'));
-            const target = document.getElementById(noteNodeRegistry[noteItem.filename]);
-            if (target) target.classList.add('active-link');
-            
-            document.querySelector('.scrollable-body-container').scrollTop = 0;
-        } catch (e) { container.innerHTML = `<p style="color:red; padding: 20px;">Error retrieving target reference asset file.</p>`; }
-    }
-
-    function toggleView(id, headerEl) {
-        const target = document.getElementById(id);
-        if (!target) return;
-        if (target.classList.contains('hidden')) {
-            target.classList.remove('hidden');
-            headerEl.classList.add('expanded');
-        } else {
-            target.classList.add('hidden');
-            headerEl.classList.remove('expanded');
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', initWorkspace);
-</script>
-</body>
-</html>
+        container.innerHTML = "<p style='padding:
