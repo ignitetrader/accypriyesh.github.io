@@ -18,15 +18,19 @@ jobs:
         run: |
           echo "[" > feed.json
           first=true
-          # Loop through files sorted chronologically
-          for file in $(ls -r diary/*.md 2>/dev/null); do
+          
+          # Move directly into the diary directory so filenames don't save with a prefix path
+          cd diary
+          
+          for file in $(ls -r *.md 2>/dev/null); do
             filename=$(basename "$file")
-            # Extract date parts assuming YYYY-MM-DD.md format
+            
+            # Extract date components assuming YYYY-MM-DD.md format
             year=$(echo "$filename" | cut -d'-' -f1)
             month_num=$(echo "$filename" | cut -d'-' -f2)
             day=$(echo "$filename" | cut -d'-' -f3 | cut -d'.' -f1)
             
-            # Map month numbers to strings
+            # Map month numbers cleanly to standard calendar strings
             case "$month_num" in
               01) month="January" ;;
               02) month="February" ;;
@@ -42,11 +46,14 @@ jobs:
               12) month="December" ;;
             esac
             
-            # Read first few lines to look for a custom sentiment tag
+            # Extract custom layout sentiment tag values from within the front matter if specified
             sentiment="Logged"
-            if grep -q "sentiment:" "$file"; then
-              sentiment=$(grep "sentiment:" "$file" | head -n 1 | cut -d':' -f2- | xargs)
+            if grep -q "sentiment:" "$filename"; then
+              sentiment=$(grep "sentiment:" "$filename" | head -n 1 | cut -d':' -f2- | xargs)
             fi
+
+            # Step back out to repo root momentarily to append to the root feed.json
+            cd ..
 
             if [ "$first" = true ]; then
               first=false
@@ -55,7 +62,13 @@ jobs:
             fi
             
             echo "  {\"filename\": \"$filename\", \"year\": \"$year\", \"month\": \"$month\", \"day\": \"$day\", \"sentiment\": \"$sentiment\"}" >> feed.json
+            
+            # Go back into the diary directory for the next iteration of the loop run
+            cd diary
           done
+          
+          # Return back out to repository root space to finalize file parameters safely
+          cd ..
           echo "]" >> feed.json
 
       - name: Commit and Push Updated Feed
@@ -63,4 +76,6 @@ jobs:
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
           git add feed.json
+          
+          # Only commit and push if the feed file actually changed to avoid infinite run tracking loops
           git diff-index --quiet HEAD || git commit -m "Automated feed sync [skip ci]" && git push
