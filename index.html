@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Sentiment & Strategy Log</title>
+    <title>Market Workspace Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         :root {
-            --bg-color: #f8fafc;
+            --bg-color: #f1f5f9;
             --sidebar-bg: #1e293b;
             --sidebar-text: #cbd5e1;
             --text-main: #0f172a;
             --text-muted: #64748b;
             --card-bg: #ffffff;
             --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
             --border-color: #cbd5e1;
         }
 
@@ -22,24 +23,41 @@
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
+            overflow: hidden;
         }
 
         .dashboard-container {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
         }
 
-        .sidebar {
-            width: 280px;
-            background-color: var(--sidebar-bg);
-            color: var(--sidebar-text);
-            padding: 20px;
-            border-right: 1px solid #334155;
+        /* Panes Setup */
+        .log-section, .notes-section {
+            display: flex;
+            flex: 1;
+            height: 100%;
             box-sizing: border-box;
         }
 
+        .log-section {
+            border-right: 3px double var(--border-color);
+        }
+
+        /* Navigation Sidebars */
+        .sidebar {
+            width: 240px;
+            background-color: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
         .sidebar-header {
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -49,75 +67,40 @@
             padding-bottom: 10px;
         }
 
-        .tree-item {
-            cursor: pointer;
-            padding: 8px 10px;
-            border-radius: 6px;
-            display: block;
-            margin-bottom: 4px;
-            transition: background 0.2s;
-            user-select: none;
-            text-decoration: none;
-        }
-
-        .tree-item:hover {
-            background-color: #334155;
-            color: #fff;
-        }
-
-        .year-level { font-size: 1.05rem; font-weight: bold; }
-        .month-level { font-size: 0.95rem; padding-left: 15px; color: #94a3b8; }
-        .date-level { font-size: 0.9rem; padding-left: 25px; color: #38bdf8; }
-        
-        .date-level.active-link {
-            background-color: var(--accent-blue);
-            color: white !important;
-            font-weight: bold;
-        }
-
-        .arrow {
-            display: inline-block;
-            font-size: 0.75rem;
-            margin-right: 5px;
-            transition: transform 0.2s;
-        }
-
-        .hidden { display: none; }
-        .expanded > .arrow { transform: rotate(90deg); }
-        .nested-group { padding-left: 5px; }
-
-        .main-content {
+        /* Content Viewport Panels */
+        .content-view {
             flex: 1;
-            padding: 40px;
-            max-width: 1100px;
-            box-sizing: border-box;
+            padding: 30px;
+            overflow-y: auto;
+            background-color: var(--bg-color);
         }
 
         .journal-header {
-            margin-bottom: 40px;
+            margin-bottom: 25px;
             border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 15px;
+            padding-bottom: 10px;
         }
 
         .journal-header h1 {
             margin: 0;
             color: var(--text-main);
-            font-size: 2rem;
+            font-size: 1.6rem;
         }
 
         .subtitle {
             margin: 5px 0 0 0;
             color: #eab308;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             font-style: italic;
         }
 
+        /* Cards Data Formatting */
         .log-entry {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 30px;
+            padding: 25px;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
         }
 
@@ -126,50 +109,98 @@
             justify-content: space-between;
             align-items: baseline;
             border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 15px;
-            margin-bottom: 25px;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
         }
 
-        .entry-header h2 { margin: 0; color: #1e293b; }
+        .entry-header h2 { margin: 0; color: #1e293b; font-size: 1.3rem; }
 
         .sentiment-badge {
-            padding: 6px 14px;
+            padding: 4px 12px;
             border-radius: 20px;
             font-weight: bold;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             background: #dcfce7; 
             color: #166534;
         }
 
         .entry-body {
-            line-height: 1.8;
+            line-height: 1.7;
             color: #334155;
-            font-size: 1.05rem;
+            font-size: 1rem;
         }
 
-        .entry-body p { margin-bottom: 20px; }
-        .entry-body h3 { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; margin-top: 30px; margin-bottom: 10px; font-weight: bold; }
+        .entry-body p { margin-bottom: 15px; }
+        .entry-body h3 { color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; margin-top: 25px; margin-bottom: 8px; font-weight: bold; }
         .entry-body img { max-width: 100%; height: auto; border-radius: 8px; margin: 15px 0; display: block; border: 1px solid var(--border-color); }
-        .entry-body a { color: var(--accent-blue); text-decoration: none; font-weight: 600; }
-        .entry-body a:hover { text-decoration: underline; }
+
+        /* Tree Controls and Interactive States */
+        .tree-item {
+            cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 6px;
+            display: block;
+            margin-bottom: 4px;
+            transition: background 0.2s, color 0.2s;
+            user-select: none;
+            font-size: 0.9rem;
+            text-decoration: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tree-item:hover {
+            background-color: #334155;
+            color: #fff;
+        }
+
+        .year-level { font-weight: bold; color: #fff; }
+        .month-level { padding-left: 15px; color: #94a3b8; }
+        .date-level { padding-left: 25px; color: #38bdf8; }
+        .note-level { color: #e9d5ff; }
+        
+        .date-level.active-link { background-color: var(--accent-blue); color: white !important; font-weight: bold; }
+        .note-level.active-link { background-color: var(--accent-purple); color: white !important; font-weight: bold; }
+
+        .arrow { display: inline-block; font-size: 0.7rem; margin-right: 5px; transition: transform 0.2s; }
+        .hidden { display: none; }
+        .expanded > .arrow { transform: rotate(90deg); }
+        .nested-group { padding-left: 5px; }
     </style>
 </head>
 <body>
 
 <div class="dashboard-container">
-    <aside class="sidebar">
-        <div class="sidebar-header">Log Archive</div>
-        <div class="archive-tree" id="archiveTree"></div>
-    </aside>
+    
+    <section class="log-section">
+        <aside class="sidebar">
+            <div class="sidebar-header">Log Archive</div>
+            <div id="logTree"></div>
+        </aside>
+        <main class="content-view">
+            <header class="journal-header">
+                <h1>Market Sentiment & Strategy Log</h1>
+                <p class="subtitle">I am the best trader</p>
+            </header>
+            <div id="active-log-view"></div>
+        </main>
+    </section>
 
-    <main class="main-content">
-        <header class="journal-header">
-            <h1>Market Sentiment & Strategy Log</h1>
-            <p class="subtitle">I am the best trader</p>
-        </header>
+    <section class="notes-section">
+        <aside class="sidebar" style="border-left: 1px solid #334155;">
+            <div class="sidebar-header">Study Foundation Notes</div>
+            <div id="notesTree"></div>
+        </aside>
+        <main class="content-view" style="background-color: #f8fafc;">
+            <header class="journal-header" style="border-bottom-color: #e9d5ff;">
+                <h1 style="color: #581c87;">Technical Core Studies</h1>
+                <p class="subtitle" style="color: var(--accent-purple);">Structured Reference Library</p>
+            </header>
+            <div id="active-notes-view"></div>
+        </main>
+    </section>
 
-        <div id="active-log-view"></div>
-    </main>
 </div>
 
 <script>
@@ -178,112 +209,93 @@
         "July": 7, "August": 8, "September": 9, "October": 10, "November": 11, "December": 12
     };
 
-    let safeNodeRegistry = {};
+    let logNodeRegistry = {};
+    let noteNodeRegistry = {};
 
-    async function initJournal() {
+    async function initWorkspace() {
+        // Load Left Engine (Logs)
         try {
-            const response = await fetch('feed.json?t=' + new Date().getTime());
-            const logs = await response.json();
-            
-            buildTree(logs);
-            if (logs.length > 0) {
-                fetchAndRenderMarkdown(logs[0]);
-            } else {
-                document.getElementById('active-log-view').innerHTML = "<p>No diary entries found. Create files inside the 'diary' folder!</p>";
-            }
+            const res = await fetch('feed.json?t=' + Date.now());
+            const logs = await res.json();
+            buildLogTree(logs);
+            if (logs.length > 0) fetchAndRenderLog(logs[0]);
         } catch (e) {
-            document.getElementById('active-log-view').innerHTML = `<p style="color:red; padding: 20px;">Error fetching index feed template parameters.</p>`;
+            document.getElementById('active-log-view').innerHTML = "<p style='color:red;'>Logs feed initialization pending...</p>";
+        }
+
+        // Load Right Engine (Notes)
+        try {
+            const res = await fetch('notes-feed.json?t=' + Date.now());
+            const notes = await res.json();
+            buildNotesTree(notes);
+            if (notes.length > 0) fetchAndRenderNote(notes[0]);
+        } catch (e) {
+            document.getElementById('active-notes-view').innerHTML = "<p style='color:var(--accent-purple);'>Create 'notes/' folder and drop a markdown note inside to initialize template layout.</p>";
         }
     }
 
-    function buildTree(logs) {
-        const treeContainer = document.getElementById('archiveTree');
+    // --- LEFT ENGINE LOGICS (LOG ARCHIVE) ---
+    function buildLogTree(logs) {
+        const container = document.getElementById('logTree');
         let dataStructure = {};
-        safeNodeRegistry = {};
+        logNodeRegistry = {};
 
-        logs.forEach((log, index) => {
+        logs.forEach((log, idx) => {
             const dayNum = parseInt(log.day, 10);
             if (!dataStructure[log.year]) dataStructure[log.year] = {};
             if (!dataStructure[log.year][log.month]) dataStructure[log.year][log.month] = [];
-            dataStructure[log.year][log.month].push({ ...log, day: dayNum, registryIndex: index });
+            dataStructure[log.year][log.month].push({ ...log, day: dayNum, registryIndex: idx });
         });
 
-        treeContainer.innerHTML = '';
-        const sortedYears = Object.keys(dataStructure).sort((a, b) => b - a);
+        container.innerHTML = '';
+        Object.keys(dataStructure).sort((a, b) => b - a).forEach((year, yIdx) => {
+            const yearId = `log-year-${year}`;
+            const header = document.createElement('div');
+            header.className = 'tree-item year-level' + (yIdx === 0 ? ' expanded' : '');
+            header.innerHTML = `<span class="arrow">▶</span> <strong>${year}</strong>`;
+            header.onclick = () => toggleView(yearId, header);
+            container.appendChild(header);
 
-        sortedYears.forEach((year, yIdx) => {
-            const yearId = `group-year-${year}`;
-            const yearHeader = document.createElement('div');
-            yearHeader.className = 'tree-item year-level';
-            
-            if (yIdx === 0) yearHeader.className += ' expanded';
-            
-            yearHeader.innerHTML = `<span class="arrow">▶</span> <strong>${year}</strong>`;
-            yearHeader.onclick = () => toggleView(yearId, yearHeader);
-            treeContainer.appendChild(yearHeader);
+            const group = document.createElement('div');
+            group.id = yearId;
+            group.className = yIdx === 0 ? 'nested-group' : 'nested-group hidden';
 
-            const yearGroup = document.createElement('div');
-            yearGroup.id = yearId;
-            yearGroup.className = yIdx === 0 ? 'nested-group' : 'nested-group hidden';
+            Object.keys(dataStructure[year]).sort((a, b) => monthOrder[a] - monthOrder[b]).forEach((month, mIdx) => {
+                const monthId = `log-month-${year}-${month}`;
+                const mHeader = document.createElement('div');
+                mHeader.className = 'tree-item month-level' + (yIdx === 0 && mIdx === 0 ? ' expanded' : '');
+                mHeader.innerHTML = `<span class="arrow">▶</span> ${month}`;
+                mHeader.onclick = (e) => { e.stopPropagation(); toggleView(monthId, mHeader); };
+                group.appendChild(mHeader);
 
-            const sortedMonths = Object.keys(dataStructure[year]).sort((a, b) => (monthOrder[a] || 0) - (monthOrder[b] || 0));
+                const mGroup = document.createElement('div');
+                mGroup.id = monthId;
+                mGroup.className = (yIdx === 0 && mIdx === 0) ? 'nested-group' : 'nested-group hidden';
 
-            sortedMonths.forEach((month, mIdx) => {
-                const monthId = `group-month-${year}-${month}`;
-                const monthHeader = document.createElement('div');
-                monthHeader.className = 'tree-item month-level';
-                
-                if (yIdx === 0 && mIdx === 0) monthHeader.className += ' expanded';
-                
-                monthHeader.innerHTML = `<span class="arrow">▶</span> ${month}`;
-                monthHeader.onclick = (e) => { e.stopPropagation(); toggleView(monthId, monthHeader); };
-                yearGroup.appendChild(monthHeader);
-
-                const monthGroup = document.createElement('div');
-                monthGroup.id = monthId;
-                monthGroup.className = (yIdx === 0 && mIdx === 0) ? 'nested-group' : 'nested-group hidden';
-
-                dataStructure[year][month].sort((a, b) => a.day - b.day);
-
-                dataStructure[year][month].forEach(post => {
-                    const dateLink = document.createElement('div');
-                    dateLink.className = 'tree-item date-level';
-                    
-                    const internalLinkKey = `node-id-${post.registryIndex}`;
-                    dateLink.id = internalLinkKey;
-                    safeNodeRegistry[post.filename] = internalLinkKey;
+                dataStructure[year][month].sort((a, b) => a.day - b.day).forEach(post => {
+                    const link = document.createElement('div');
+                    link.className = 'tree-item date-level';
+                    const nodeKey = `log-node-${post.registryIndex}`;
+                    link.id = nodeKey;
+                    logNodeRegistry[post.filename] = nodeKey;
                     
                     const formattedDay = post.day < 10 ? '0' + post.day : post.day;
-                    dateLink.innerHTML = `📅 Day ${formattedDay}`;
-                    
-                    dateLink.onclick = (e) => {
-                        e.stopPropagation();
-                        fetchAndRenderMarkdown(post);
-                    };
-                    monthGroup.appendChild(dateLink);
+                    link.innerHTML = `📅 Day ${formattedDay}`;
+                    link.onclick = (e) => { e.stopPropagation(); fetchAndRenderLog(post); };
+                    mGroup.appendChild(link);
                 });
-                yearGroup.appendChild(monthGroup);
+                group.appendChild(mGroup);
             });
-            treeContainer.appendChild(yearGroup);
+            container.appendChild(group);
         });
     }
 
-    async function fetchAndRenderMarkdown(logItem) {
+    async function fetchAndRenderLog(logItem) {
         const container = document.getElementById('active-log-view');
         try {
-            // FIXED: Fetches directly from raw.githubusercontent.com to force immediate sync and bypass CDN delays completely
-            const response = await fetch(`https://raw.githubusercontent.com/accypriyesh/accypriyesh.github.io/main/diary/${logItem.filename}?t=` + new Date().getTime());
-            
-            if (!response.ok) {
-                throw new Error(`Server returned status layout parameters: ${response.status}`);
-            }
-            
-            let text = await response.text();
-            let markdownContent = text;
-
-            if (text.trim().startsWith('---')) {
-                markdownContent = text.replace(/^---[\s\S]*?---/, '');
-            }
+            const res = await fetch(`https://raw.githubusercontent.com/accypriyesh/accypriyesh.github.io/main/diary/${logItem.filename}?t=` + Date.now());
+            let text = await res.text();
+            if (text.trim().startsWith('---')) text = text.replace(/^---[\s\S]*?---/, '');
 
             container.innerHTML = `
                 <article class="log-entry">
@@ -291,18 +303,50 @@
                         <h2>${logItem.month} ${logItem.day}, ${logItem.year}</h2>
                         <span class="sentiment-badge">${logItem.sentiment || 'Logged'}</span>
                     </div>
-                    <div class="entry-body">${marked.parse(markdownContent)}</div>
+                    <div class="entry-body">${marked.parse(text)}</div>
                 </article>
             `;
-
             document.querySelectorAll('.date-level').forEach(el => el.classList.remove('active-link'));
-            const activeNodeId = safeNodeRegistry[logItem.filename];
-            const targetNode = document.getElementById(activeNodeId);
-            if (targetNode) targetNode.classList.add('active-link');
+            const target = document.getElementById(logNodeRegistry[logItem.filename]);
+            if (target) target.classList.add('active-link');
+        } catch (e) { container.innerHTML = `<p style="color:red;">Error loading file logic.</p>`; }
+    }
 
-        } catch (e) {
-            container.innerHTML = `<p style="color:red; padding: 20px;">Unable to display text body content. (Technical Details: ${e.message}).</p>`;
-        }
+    // --- RIGHT ENGINE LOGICS (STUDY NOTES REFERENCE) ---
+    function buildNotesTree(notes) {
+        const container = document.getElementById('notesTree');
+        container.innerHTML = '';
+        noteNodeRegistry = {};
+
+        notes.forEach((note, idx) => {
+            const link = document.createElement('div');
+            link.className = 'tree-item note-level';
+            const nodeKey = `note-node-${idx}`;
+            link.id = nodeKey;
+            noteNodeRegistry[note.filename] = nodeKey;
+            
+            link.innerHTML = `📝 ${note.title}`;
+            link.onclick = () => fetchAndRenderNote(note);
+            container.appendChild(link);
+        });
+    }
+
+    async function fetchAndRenderNote(noteItem) {
+        const container = document.getElementById('active-notes-view');
+        try {
+            const res = await fetch(`https://raw.githubusercontent.com/accypriyesh/accypriyesh.github.io/main/notes/${noteItem.filename}?t=` + Date.now());
+            let text = await res.text();
+            if (text.trim().startsWith('---')) text = text.replace(/^---[\s\S]*?---/, '');
+
+            container.innerHTML = `
+                <article class="log-entry" style="border-top: 4px solid var(--accent-purple);">
+                    <div class="entry-body">${marked.parse(text)}</div>
+                </article>
+            `;
+            document.querySelectorAll('.note-level').forEach(el => el.classList.remove('active-link'));
+            const target = document.getElementById(noteNodeRegistry[noteItem.filename]);
+            if (target) target.classList.add('active-link');
+        } catch (e) { container.innerHTML = `<p style="color:red;">Error loading tracking files.</p>`; }
     }
 
     function toggleView(id, headerEl) {
@@ -317,7 +361,7 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', initJournal);
+    document.addEventListener('DOMContentLoaded', initWorkspace);
 </script>
 </body>
 </html>
